@@ -1,7 +1,9 @@
 from pydantic import Field
 
 from langchain.tools.base import BaseTool
-from ..utilities.apitable import APITableAPIWrapper
+from apitable_toolkit.utilities.apitable import (
+    APITableAPIWrapper,
+)
 
 
 class APITableAction(BaseTool):

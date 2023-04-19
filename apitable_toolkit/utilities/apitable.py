@@ -5,7 +5,7 @@ from pydantic import BaseModel, Extra, root_validator
 
 from langchain.utils import get_from_dict_or_env
 
-from tool.prompt import (
+from apitable_toolkit.tool.prompt import (
     APITABLE_CATCH_ALL_PROMPT,
     APITABLE_GET_NODES_PROMPT,
     APITABLE_GET_RECORDS_PROMPT,
@@ -158,7 +158,7 @@ class APITableAPIWrapper(BaseModel):
             records = dst.records.all(sort=sort_condition)
         elif "maxRecords_condition" in params:
             maxRecords_condition = params["maxRecords_condition"]
-            records = dst.records.all({"maxRecords": maxRecords_condition})
+            records = dst.records.all(maxRecords=maxRecords_condition)
         else:
             records = dst.records.all()
         parsed_records = [record.json() for record in records]

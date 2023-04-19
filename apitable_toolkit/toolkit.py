@@ -3,8 +3,8 @@ from typing import List
 
 from langchain.agents.agent_toolkits.base import BaseToolkit
 from langchain.tools import BaseTool
-from tool.tool import APITableAction
-from utilities.apitable import APITableAPIWrapper
+from apitable_toolkit.tool.tool import APITableAction
+from apitable_toolkit.utilities.apitable import APITableAPIWrapper
 
 
 class APITableToolkit(BaseToolkit):
