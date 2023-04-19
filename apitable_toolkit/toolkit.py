@@ -3,7 +3,7 @@ from typing import List
 
 from langchain.agents.agent_toolkits.base import BaseToolkit
 from langchain.tools import BaseTool
-from tool import APITableAction
+from tool.tool import APITableAction
 from utilities.apitable import APITableAPIWrapper
 
 
