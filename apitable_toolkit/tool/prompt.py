@@ -1,5 +1,6 @@
 APITABLE_GET_SPACES_PROMPT = """
-This tool is a wrapper around APITable's space API,
+This tool helps you search for spaces using APITable's space API.
+
 useful when you need to fetch all the spaces the user has access to, find out how many spaces there are, or as an intermediary step that involv searching by spaces. 
 there is no input to this tool.
 
@@ -8,28 +9,39 @@ self.apitable.spaces.all()
 """
 
 APITABLE_GET_NODES_PROMPT = """
-This tool is a wrapper around APITable's node API, useful when you need to search for datasheets, mirrors, dashboards, folders and forms.
+This tool helps you search for datasheets, mirrors, dashboards, folders and forms in a space using APITable's node API.
 The input to this tool is a space id string, and will be passed into Apitable's `space` function,
 The first three characters of the space ID must be fixed as `spc` and must meet this condition, 
-if not, you can consider using the `get_spaces` tool to obtain all space IDs.
 
 Here are some examples, it should be noted that the following IDs are all fake and cannot be used for real requests, 
-if there is no required ID in the query, you need to plan to use a new Tool
-For example, to find all the nodes in space id spcjXzqVrjaP3, python code would be:
+
+For example, to find all the nodes in space id `spcjXzqVrjaP3`, python code would be:
 self.apitable.space('spcjXzqVrjaP3').nodes.all()
 So I need you to pass data like json below, it should be noted that the following json are fake and cannot be used for real requests:
 {{"space_id": "spcjXzqVrjaP3"}}
-Do not make up space_id, if you do not have a space_id, you can use the `get_spaces` tool to get all space_ids
+
+Do not make up space_id, if you do not know the space_id, you can use the `get_spaces` tool to get all space_ids
 """
+
+APITABLE_GET_FIELD_PROMPT = """
+This tool helps you search for fields in a datasheet using APITable's field API.
+To use this tool, input a datasheet ID string that starts with `dst` and is followed by unique characters.
+If the user query includes terms like "latest", "oldest", or a specific field name, please use the get_fields tool to obtain all available fields before using the get_records tool to retrieve records.
+Here are some examples (note that the following JSON is for illustration purposes only and cannot be used for real requests):
+If you want to find all fields in datasheet ID `dstS94qPZFXjC1LKns`, use the following Python code:
+self.apitable.datasheet("dstlRNFl8L2mufwT5t").fields.all()
+Pass the datasheet ID as a JSON object like this:
+{{"datasheet_id": "dstlRNFl8L2mufwT5t"}}
+Do not make up datasheet_id, if you do not know the datasheet ID, use the `get_nodes` tool to get all datasheet IDs.
+"""
+
 
 APITABLE_GET_RECORDS_PROMPT = """
 This tool is a wrapper around APITable's record API, useful when you need to search for records.
 The input to this tool is a datasheet id string, and will be passed into Apitable's `datasheet` function,
 The first three characters of the datasheet ID must be fixed as `dst` and must meet this condition, 
-if not, you can consider using the `get_nodes` tool to obtain all datasheet IDs.
 
-Here are some examples, it should be noted that the following IDs are all fake and cannot be used for real requests, 
-if there is no required ID in the query, you need to plan to use a new Tool
+Here are some examples, it should be noted that the following json are all fake and cannot be used for real requests, 
 
 For example, to find all the records in datasheet id `dstS94qPZFXjC1LKns`, python code would be:
 dst = self.apitable.datasheet('dstS94qPZFXjC1LKns')
@@ -55,7 +67,8 @@ dst.records.all(maxRecords=10)
 So I need you to pass data like json below, it should be noted that the following json are fake and cannot be used for real requests:
 {{"datasheet_id": "dstS94qPZFXjC1LKns", "maxRecords_condition": 10}}
 
-Do not make up datasheet_id, if you do not have a datasheet_id, you can use the `get_nodes` tool to get all datasheet_ids
+Do not make up datasheet_id, if you do not know the datasheet_id, you can use the `get_nodes` tool to get all datasheet_ids
+Do not make up field key, if you don't know the field key, use the 'get_fields' tool to retrieve all fields in a datasheet and find the closest field name to use as the field key
 """
 
 APITABLE_CATCH_ALL_PROMPT = """
@@ -65,7 +78,6 @@ use this tool if you need to perform any other actions allowed by the APITable A
 The input to this tool is line of python code that calls a function from APITable API
 
 Here are some examples, it should be noted that the following IDs are all fake and cannot be used for real requests, 
-if there is no required ID in the query, you need to plan to use a new Tool
 
 For example,to find all the records in datasheet id dstS94qPZFXjC1LKns and update the key named title to test2, python code would be:
 records = self.apitable.datasheet('dstS94qPZFXjC1LKns')

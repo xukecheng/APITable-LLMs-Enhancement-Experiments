@@ -7,10 +7,13 @@ from langchain.utils import get_from_dict_or_env
 
 from apitable_toolkit.tool.prompt import (
     APITABLE_CATCH_ALL_PROMPT,
+    APITABLE_GET_FIELD_PROMPT,
     APITABLE_GET_NODES_PROMPT,
     APITABLE_GET_RECORDS_PROMPT,
     APITABLE_GET_SPACES_PROMPT,
 )
+
+import json
 
 
 # TODO: think about error handling, more specific api specs
@@ -33,15 +36,20 @@ class APITableAPIWrapper(BaseModel):
             "description": APITABLE_GET_NODES_PROMPT,
         },
         {
+            "mode": "get_fields",
+            "name": "Get Fields",
+            "description": APITABLE_GET_FIELD_PROMPT,
+        },
+        {
             "mode": "get_records",
             "name": "Get Records",
             "description": APITABLE_GET_RECORDS_PROMPT,
         },
-        {
-            "mode": "other",
-            "name": "Catch all APITable API call",
-            "description": APITABLE_CATCH_ALL_PROMPT,
-        },
+        # {
+        #     "mode": "other",
+        #     "name": "Catch all APITable API call",
+        #     "description": APITABLE_CATCH_ALL_PROMPT,
+        # },
     ]
 
     class Config:
@@ -112,12 +120,6 @@ class APITableAPIWrapper(BaseModel):
             return f"AND({qs})"
 
     def get_spaces(self) -> str:
-        try:
-            import json
-        except ImportError:
-            raise ImportError(
-                "json is not installed. " "Please install it with `pip install json`"
-            )
         spaces = self.apitable.spaces.all()
         parsed_spaces = [json.loads(space.json()) for space in spaces]
         parsed_spaces_str = (
@@ -127,44 +129,59 @@ class APITableAPIWrapper(BaseModel):
 
     def get_nodes(self, query: str) -> str:
         try:
-            import json
-        except ImportError:
-            raise ImportError(
-                "json is not installed. " "Please install it with `pip install json`"
+            params = json.loads(query)
+        except Exception as e:
+            return f"Found a error 'Action input need effective space_id', please try another tool to get right space_id."
+        try:
+            nodes = self.apitable.space(space_id=params["space_id"]).nodes.all()
+            parsed_nodes = [json.loads(node.json()) for node in nodes]
+            parsed_nodes_str = (
+                "Found " + str(len(parsed_nodes)) + " nodes:\n" + str(parsed_nodes)
             )
-        params = json.loads(query)
-        nodes = self.apitable.space(space_id=params["space_id"]).nodes.all()
-        parsed_nodes = [json.loads(node.json()) for node in nodes]
-        parsed_nodes_str = (
-            "Found " + str(len(parsed_nodes)) + " nodes:\n" + str(parsed_nodes)
-        )
+        except Exception as e:
+            parsed_nodes_str = (
+                f"Found a error '{e}', please try another tool to get right space_id."
+            )
         return parsed_nodes_str
 
-    def get_records(self, query: str) -> str:
+    def get_fields(self, query: str) -> str:
+        params = json.loads(query)
+        datasheet_id = params["datasheet_id"]
         try:
-            import json
-        except ImportError:
-            raise ImportError(
-                "json is not installed. " "Please install it with `pip install json`"
+            fields = self.apitable.datasheet(datasheet_id).fields.all()
+            parsed_fields = [json.loads(field.json()) for field in fields]
+            parsed_fields_str = (
+                "Found " + str(len(parsed_fields)) + " fields:\n" + str(parsed_fields)
             )
+        except Exception as e:
+            parsed_fields_str = f"Found a error '{e}', please try another tool to get right datasheet_id."
+        return parsed_fields_str
+
+    def get_records(self, query: str) -> str:
         params = json.loads(query)
         datasheet_id = params["datasheet_id"]
         dst = self.apitable.datasheet(datasheet_id)
+        kwargs = {}
         if "filter_condition" in params:
-            query_formula = self.query_parse(params["filter_condition"])
-            records = dst.records.all(filterByFormula=query_formula)
-        elif "sort_condition" in params:
-            sort_condition = params["sort_condition"]
-            records = dst.records.all(sort=sort_condition)
-        elif "maxRecords_condition" in params:
-            maxRecords_condition = params["maxRecords_condition"]
-            records = dst.records.all(maxRecords=maxRecords_condition)
-        else:
-            records = dst.records.all()
-        parsed_records = [record.json() for record in records]
-        parsed_records_str = (
-            "Found " + str(len(parsed_records)) + " records:\n" + str(parsed_records)
-        )
+            kwargs["filterByFormula"] = params["filter_condition"]
+        if "sort_condition" in params:
+            kwargs["sort"] = params["sort_condition"]
+        if "maxRecords_condition" in params:
+            kwargs["maxRecords"] = params["maxRecords_condition"]
+        try:
+            records = dst.records.all(**kwargs)
+            parsed_records = [record.json() for record in records]
+            parsed_records_str = (
+                "Found "
+                + str(len(parsed_records))
+                + " records:\n"
+                + str(parsed_records)
+            )
+        except Exception as e:
+            if str(e) == "The sorted field does not exist":
+                parsed_records_str = f"Found a error '{e}', please try another tool to get right field_key."
+            else:
+                parsed_records_str = f"Found a error '{e}', please try another tool."
         return parsed_records_str
 
     def other(self, query: str) -> str:
@@ -178,6 +195,8 @@ class APITableAPIWrapper(BaseModel):
             return self.get_spaces()
         elif mode == "get_nodes":
             return self.get_nodes(query)
+        elif mode == "get_fields":
+            return self.get_fields(query)
         elif mode == "get_records":
             return self.get_records(query)
         elif mode == "other":
