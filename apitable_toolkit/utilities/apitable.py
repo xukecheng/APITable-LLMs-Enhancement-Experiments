@@ -163,7 +163,8 @@ class APITableAPIWrapper(BaseModel):
         dst = self.apitable.datasheet(datasheet_id)
         kwargs = {}
         if "filter_condition" in params:
-            kwargs["filterByFormula"] = params["filter_condition"]
+            query_formula = self.query_parse(params["filter_condition"])
+            kwargs["filterByFormula"] = query_formula
         if "sort_condition" in params:
             kwargs["sort"] = params["sort_condition"]
         if "maxRecords_condition" in params:

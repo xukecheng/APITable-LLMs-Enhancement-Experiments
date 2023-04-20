@@ -23,3 +23,12 @@ agent = initialize_agent(
 )
 # agent.run("What spaces do I have")
 # agent.run("What datasheets do I have")
+
+# TODO: need to make AI understand what is node.
+# TODO: need to make AI do not make up tools.
+
+# agent.run(
+#     "The space_id is spctqtTZpssYw. Tell me the datasheet ID whose name has 'MAU' in this space"
+# )
+
+agent.run("Tell me the latest value of APITable MAU in xukecheng's space")
