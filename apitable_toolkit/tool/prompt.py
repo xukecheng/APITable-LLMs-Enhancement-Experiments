@@ -11,8 +11,7 @@ self.apitable.spaces.all()
 APITABLE_GET_NODES_PROMPT = """
 This tool helps you search for datasheets, mirrors, dashboards, folders and forms using APITable's node API,
 datasheet, mirror, dashboard, folder and form are all called node in APITable.
-The input to this tool is a space id string, and will be passed into Apitable's `space` function,
-The first three characters of the space ID must be fixed as `spc` and must meet this condition, 
+The input to this tool is a space id that starts with `spc` and is followed by unique characters.
 For example, this tool can help you find the specific node in a space, 
 if usery query has no info about node, you can find nodes by logical reasoning
 so I need you to pass data like json below,
@@ -23,7 +22,7 @@ Do not make up space_id, if you do not know the space_id, you can use the `get_s
 
 APITABLE_GET_FIELD_PROMPT = """
 This tool helps you search for fields in a datasheet using APITable's field API.
-To use this tool, input a datasheet ID string that starts with `dst` and is followed by unique characters.
+To use this tool, input a datasheet id that starts with `dst` and is followed by unique characters.
 If the user query includes terms like "latest", "oldest", or a specific field name, please use the `get_fields` tool first to get the field name as field key
 Here are some examples (note that the following JSON is for illustration purposes only and cannot be used for real requests):
 If you want to find all fields in datasheet ID `dstS94qPZFXjC1LKns`, use the following Python code:
@@ -31,6 +30,70 @@ self.apitable.datasheet("dstlRNFl8L2mufwT5t").fields.all()
 Pass the datasheet ID as a JSON object like this:
 {{"datasheet_id": "dstlRNFl8L2mufwT5t"}}
 Do not make up datasheet_id, if you do not know the datasheet ID, use the `get_nodes` tool to get all datasheet IDs.
+"""
+
+APITABLE_CREATE_FIELD_PROMPT = """
+This tool helps you create fields in a datasheet using APITable's field API.
+To use this tool, input a space id and a datasheet id, if you don't have these two ids, you can use the `get_spaces` and `get_nodes` tools to get them.
+Different field types have different properties, the following are all field types and their properties:
+1.SingleText:
+defaultValue | string | Default is empty
+2.Text: No field properties are available.
+3.SingleSelect:
+options | object arrays	| List of all available options, Default is empty
+Each object in the `options` key has the following schema:
+name | string | option name
+4.MultiSelect: The field properties are the same as the SingleSelect.
+5.Number:
+defaultValue | string | Default is empty.
+precision | number(enum) | the precision of the number. 0 (for integers), 1 (to one decimal place), 2 (to two decimal places), 3 (to three decimal places), 4 (to four decimal places)
+6.Currency:
+defaultValue | string | Default is empty.
+precision | number(enum) | the precision of the number. 0 (for integers), 1 (to one decimal place), 2 (to two decimal places), 3 (to three decimal places), 4 (to four decimal places)
+symbol | string | Currency symbol
+7.Percent: The field properties are the same as the number.
+8.DateTime:
+dateFormat | string(enum) | `YYYY-MM-DD` `YYYY-MM` `MM-DD` `YYYY` `MM` `DD` 
+includeTime | boolean | Include time or not, default is False
+timeFormat | string(enum) | `HH:mm` `hh:mm`
+9.Attachment: Don't need properties
+10.Member:
+isMulti | boolean | Is it possible to select multiple members, default is True
+shouldSendMsg | boolean | Whether to send a message to members in time, default is False
+11.Checkbox:
+icon | string(enum) | Default is white_check_mark
+12.Rating:
+icon | string(enum) | Default is star
+max | number | The maximum value of the rating, from 1-10, default is 5
+13.URL: Don't need properties
+14.Phone: Don't need properties
+15.Email: Don't need properties
+16.MagicLink:
+foreignDatasheetId | string | Related datasheet id
+limitSingleRecord | boolean | Link to multiple records, default is False
+17.AutoNumber: Don't need properties
+18.CreatedTime: Same as DateTime.
+19.LastModifiedTime: Same as DateTime.
+20.CreatedBy: Don't need properties
+21.LastModifiedBy: Don't need properties
+22.Formula:
+expression | string | formula expression, default is empty
+valueType | string(enum) | Including `String` `Boolean` `Number` `DateTime` `Array`
+hasError | boolean | Default is False
+
+Do not make up field type, the num of field type is 22
+Do not make up properties, if you do not know the properties, then don't send field_data
+--------------------------
+Here are some examples (note that the following JSON is for illustration purposes only and cannot be used for real requests):
+If you want to find all fields in `dstS94qPZFXjC1LKns` as datasheet id and `spcjXzqVrjaP3` as space id, use the following Python code:
+field_data = {{
+    "name": "Add text field",
+    "type": "SingleText",
+    "property": {{"defaultValue": "Default value"}}
+}}
+self.apitable.space("spcjXzqVrjaP3").datasheet("dstFQKumRsAp4p5RBE").fields.create(field_data)
+Pass the datasheet ID as a JSON object like this:
+{{"space_id": "spcjXzqVrjaP3", "datasheet_id": "dstlRNFl8L2mufwT5t", "field_data": {{"defaultValue": "Default value"}}}}
 """
 
 

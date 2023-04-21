@@ -6,8 +6,8 @@ from pydantic import BaseModel, Extra, root_validator
 from langchain.utils import get_from_dict_or_env
 
 from apitable_toolkit.tool.prompt import (
-    APITABLE_CATCH_ALL_PROMPT,
     APITABLE_GET_FIELD_PROMPT,
+    APITABLE_CREATE_FIELD_PROMPT,
     APITABLE_GET_NODES_PROMPT,
     APITABLE_GET_RECORDS_PROMPT,
     APITABLE_GET_SPACES_PROMPT,
@@ -39,6 +39,11 @@ class APITableAPIWrapper(BaseModel):
             "mode": "get_fields",
             "name": "Get Fields",
             "description": APITABLE_GET_FIELD_PROMPT,
+        },
+        {
+            "mode": "create_fields",
+            "name": "Create Fields",
+            "description": APITABLE_CREATE_FIELD_PROMPT,
         },
         {
             "mode": "get_records",
@@ -157,6 +162,24 @@ class APITableAPIWrapper(BaseModel):
             parsed_fields_str = f"Found a error '{e}', please try another tool to get right datasheet_id."
         return parsed_fields_str
 
+    def create_fields(self, query: str) -> str:
+        params = json.loads(query)
+        space_id = params["space_id"]
+        datasheet_id = params["datasheet_id"]
+        field_data = params["field_data"]
+        try:
+            field = (
+                self.apitable.space(space_id)
+                .datasheet(datasheet_id)
+                .fields.create(field_data)
+            )
+            parsed_fields_str = "Field created! \n" + str(field.json())
+        except Exception as e:
+            parsed_fields_str = (
+                f"Found a error '{e}', please try to correct field_data."
+            )
+        return parsed_fields_str
+
     def get_records(self, query: str) -> str:
         params = json.loads(query)
         datasheet_id = params["datasheet_id"]
@@ -198,6 +221,8 @@ class APITableAPIWrapper(BaseModel):
             return self.get_nodes(query)
         elif mode == "get_fields":
             return self.get_fields(query)
+        elif mode == "create_fields":
+            return self.create_fields(query)
         elif mode == "get_records":
             return self.get_records(query)
         elif mode == "other":
