@@ -2,9 +2,8 @@ from langchain.agents import AgentType
 from langchain.agents import initialize_agent
 from langchain.llms import OpenAI
 import os
-
+from apitable_toolkit.tool.prompt import PREFIX, FORMAT_INSTRUCTIONS, SUFFIX
 from langchain.chat_models import ChatOpenAI
-
 from apitable_toolkit.toolkit import APITableToolkit
 from apitable_toolkit.utilities.apitable import APITableAPIWrapper
 from langchain.callbacks import get_openai_callback
@@ -21,6 +20,11 @@ agent = initialize_agent(
     llm,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
+    agent_kwargs={
+        "prefix": PREFIX,
+        "format_instructions": FORMAT_INSTRUCTIONS,
+        "suffix": SUFFIX,
+    },
 )
 
 with get_openai_callback() as cb:
