@@ -204,6 +204,10 @@ class APITableAPIWrapper(BaseModel):
         except Exception as e:
             if str(e) == "The sorted field does not exist":
                 parsed_records_str = f"Found a error '{e}', please try another tool to get right field_key."
+            elif str(e) == "api_param_formula_error":
+                parsed_records_str = (
+                    f"Found a error '{e}', please try to make right filter_condition."
+                )
             else:
                 parsed_records_str = f"Found a error '{e}', please try another tool."
         return parsed_records_str
