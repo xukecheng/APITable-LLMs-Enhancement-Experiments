@@ -11,7 +11,11 @@ from apitable_toolkit.tool.prompt import (
     APITABLE_GET_NODES_PROMPT,
     APITABLE_GET_RECORDS_PROMPT,
     APITABLE_GET_SPACES_PROMPT,
+    APITABLE_CATCH_ALL_PROMPT,
 )
+from langchain.embeddings.openai import OpenAIEmbeddings
+
+from langchain.vectorstores import Chroma
 
 import json
 
@@ -21,40 +25,35 @@ class APITableAPIWrapper(BaseModel):
     """Wrapper for APITable API."""
 
     apitable: Any  #: :meta private:
-    apitable_api_token: str
+    apitable_api_token: Optional[str]
     apitable_api_base: Optional[str] = "https://apitable.com"
+    embeddings = OpenAIEmbeddings()
 
     operations: List[Dict] = [
         {
-            "mode": "get_spaces",
             "name": "Get Spaces",
-            "description": APITABLE_GET_SPACES_PROMPT,
+            "description": "",
         },
         {
-            "mode": "get_nodes",
             "name": "Get Nodes",
-            "description": APITABLE_GET_NODES_PROMPT,
+            "description": "",
         },
         {
-            "mode": "get_fields",
             "name": "Get Fields",
-            "description": APITABLE_GET_FIELD_PROMPT,
+            "description": "",
         },
         {
-            "mode": "create_fields",
             "name": "Create Fields",
-            "description": APITABLE_CREATE_FIELD_PROMPT,
+            "description": "",
         },
         {
-            "mode": "get_records",
             "name": "Get Records",
-            "description": APITABLE_GET_RECORDS_PROMPT,
+            "description": "",
         },
-        # {
-        #     "mode": "other",
-        #     "name": "Catch all APITable API call",
-        #     "description": APITABLE_CATCH_ALL_PROMPT,
-        # },
+        {
+            "name": "Planner",
+            "description": APITABLE_CATCH_ALL_PROMPT,
+        },
     ]
 
     class Config:
@@ -128,7 +127,7 @@ class APITableAPIWrapper(BaseModel):
         spaces = self.apitable.spaces.all()
         parsed_spaces = [json.loads(space.json()) for space in spaces]
         parsed_spaces_str = (
-            "Found " + str(len(parsed_spaces)) + " spaces:\n" + str(parsed_spaces)
+            "Found " + str(len(parsed_spaces)) + " spaces:" + str(parsed_spaces)
         )
         return parsed_spaces_str
 
@@ -212,24 +211,25 @@ class APITableAPIWrapper(BaseModel):
                 parsed_records_str = f"Found a error '{e}', please try another tool."
         return parsed_records_str
 
-    def other(self, query: str) -> str:
-        context = {"self": self}
-        exec(f"result = {query}", context)
-        result = context["result"]
-        return str(result)
+    def planner(self, query: str) -> str:
+        db = Chroma(persist_directory="./db", embedding_function=self.embeddings)
+        docs = db.similarity_search_with_score(query)
+        return (
+            f"Add tools to your workflow to get the results: {docs[0][0].page_content}"
+        )
 
-    def run(self, mode: str, query: str) -> str:
-        if mode == "get_spaces":
+    def run(self, name: str, query: str) -> str:
+        if name == "Get Spaces":
             return self.get_spaces()
-        elif mode == "get_nodes":
+        elif name == "Get Nodes":
             return self.get_nodes(query)
-        elif mode == "get_fields":
+        elif name == "Get Fields":
             return self.get_fields(query)
-        elif mode == "create_fields":
+        elif name == "Create Fields":
             return self.create_fields(query)
-        elif mode == "get_records":
+        elif name == "Get Records":
             return self.get_records(query)
-        elif mode == "other":
-            return self.other(query)
+        elif name == "Planner":
+            return self.planner(query)
         else:
-            raise ValueError(f"Got unexpected mode {mode}")
+            raise ValueError(f"Got unexpected mode {name}")

@@ -8,13 +8,12 @@ from apitable_toolkit.utilities.apitable import (
 
 class APITableAction(BaseTool):
     api_wrapper: APITableAPIWrapper = Field(default_factory=APITableAPIWrapper)
-    mode: str
     name = ""
     description = ""
 
     def _run(self, instructions: str) -> str:
         """Use the APITable API to run an operation."""
-        return self.api_wrapper.run(self.mode, instructions)
+        return self.api_wrapper.run(self.name, instructions)
 
     async def _arun(self, _: str) -> str:
         """Use theAPITable to run an operation."""

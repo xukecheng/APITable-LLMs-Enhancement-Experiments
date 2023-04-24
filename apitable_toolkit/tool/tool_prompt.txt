@@ -1,58 +1,31 @@
-PREFIX = """
-Answer the following questions as best you can, 
-You have access to the following tools.  
-But every tool has a cost, so be smart and efficient. 
-Aim to complete tasks in the least number of steps:
-"""
-
-FORMAT_INSTRUCTIONS = """Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action, if action don't need input, just leave it blank
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question"""
-
-SUFFIX = """Output the final answer if the latest observation can solve the original input question.
-Don't proceed to the next question.
-
-Begin!
-Question: {input}
-Thought:{agent_scratchpad}"""
-
-
-APITABLE_CATCH_ALL_PROMPT = "This tool can help you find what tool should be use, The input to this tool is your thought"
-
-APITABLE_GET_SPACES_PROMPT = """
-This tool is useful when you need to fetch all the spaces the user has access to, 
+Get Spaces
+Mode: get_spaces
+Description: This tool is useful when you need to fetch all the spaces the user has access to, 
 find out how many spaces there are, or as an intermediary step that involv searching by spaces. 
 there is no input to this tool.
-"""
 
-APITABLE_GET_NODES_PROMPT = """
-This tool uses APITable's node API to help you search for datasheets, mirrors, dashboards, folders, and forms.
+Get Nodes
+Mode: get_nodes
+Description: This tool uses APITable's node API to help you search for datasheets, mirrors, dashboards, folders, and forms.
 These are all types of nodes in APITable.
 The input to this tool is a space id.
 You should only respond in JSON format like this:
 {{"space_id": "spcjXzqVrjaP3"}}
 Do not make up a space_id if you're not sure about it, use the get_spaces tool to retrieve all available space_ids.
-"""
 
-APITABLE_GET_FIELD_PROMPT = """
-This tool helps you search for fields in a datasheet using APITable's field API.
+Get Fields
+Mode: get_fields
+Description: This tool helps you search for fields in a datasheet using APITable's field API.
 To use this tool, input a datasheet id.
 If the user query includes terms like "latest", "oldest", or a specific field name, 
 please use this tool first to get the field name as field key
 You should only respond in JSON format like this:
 {{"datasheet_id": "dstlRNFl8L2mufwT5t"}}
 Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.
-"""
 
-APITABLE_CREATE_FIELD_PROMPT = """
-This tool helps you create fields in a datasheet using APITable's field API.
+Create Fields
+Mode: create_fields
+Description: This tool helps you create fields in a datasheet using APITable's field API.
 To use this tool, input a space id and a datasheet id.
 Different field types have different properties, the following are all field types and their properties:
 1.SingleText:
@@ -104,11 +77,10 @@ Do not make up properties, if you do not know the properties, then don't send fi
 --------------------------
 You should only respond in JSON format like this:
 {{"space_id": "spcjXzqVrjaP3", "datasheet_id": "dstlRNFl8L2mufwT5t", "field_data": {{"defaultValue": "Default value"}}}}
-"""
 
-
-APITABLE_GET_RECORDS_PROMPT = """
-This tool is a wrapper around APITable's record API, useful when you need to search for records.
+Get Records
+Mode: create_records
+Description: This tool is a wrapper around APITable's record API, useful when you need to search for records.
 The input to this tool is a datasheet id string, and will be passed into Apitable's `datasheet` function,
 The first three characters of the datasheet ID must be fixed as `dst` and must meet this condition, 
 Here are some examples, you should only respond in JSON format like this:
@@ -124,4 +96,3 @@ dst = self.apitable.datasheet('dstS94qPZFXjC1LKns')
 Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.
 Do not make up field key if you're not sure about it, use the 'get_fields' tool to retrieve all fields in a datasheet 
 and find the closest field name to use as the field key
-"""

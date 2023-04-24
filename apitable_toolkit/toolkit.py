@@ -21,7 +21,6 @@ class APITableToolkit(BaseToolkit):
             APITableAction(
                 name=action["name"],
                 description=action["description"],
-                mode=action["mode"],
                 api_wrapper=apitable_api_wrapper,
             )
             for action in actions
