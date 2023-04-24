@@ -16,9 +16,8 @@ Observation: the result of the action
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question"""
 
-SUFFIX = """If latest Observation can solute original input question, 
-then output final answer, 
-don't move on to the next question:
+SUFFIX = """Output the final answer if the latest observation can solve the original input question.
+Don't proceed to the next question.
 
 Begin!
 Question: {input}
@@ -32,12 +31,12 @@ there is no input to this tool.
 """
 
 APITABLE_GET_NODES_PROMPT = """
-This tool helps you search for datasheets, mirrors, dashboards, folders and forms using APITable's node API,
-datasheet, mirror, dashboard, folder and form are all called node in APITable.
+This tool uses APITable's node API to help you search for datasheets, mirrors, dashboards, folders, and forms.
+These are all types of nodes in APITable.
 The input to this tool is a space id.
 You should only respond in JSON format like this:
 {{"space_id": "spcjXzqVrjaP3"}}
-Do not make up space_id, if you do not know the space_id, you can use the `get_spaces` tool to get all space_ids
+Do not make up a space_id if you're not sure about it, use the get_spaces tool to retrieve all available space_ids.
 """
 
 APITABLE_GET_FIELD_PROMPT = """
@@ -47,7 +46,7 @@ If the user query includes terms like "latest", "oldest", or a specific field na
 please use this tool first to get the field name as field key
 You should only respond in JSON format like this:
 {{"datasheet_id": "dstlRNFl8L2mufwT5t"}}
-Do not make up datasheet_id, if you do not know the datasheet ID, use the `get_nodes` tool to get all datasheet IDs.
+Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.
 """
 
 APITABLE_CREATE_FIELD_PROMPT = """
@@ -120,7 +119,7 @@ dst = self.apitable.datasheet('dstS94qPZFXjC1LKns')
 {{"datasheet_id": "dstS94qPZFXjC1LKns", "sort_condition": [{{ "field": "test", "order": "desc" }}]}}
 4.Find records and set the number of records returned is 10 in datasheet id `dstS94qPZFXjC1LKns`, json would be:
 {{"datasheet_id": "dstS94qPZFXjC1LKns", "maxRecords_condition": 10}}
-Do not make up datasheet_id, if you do not know the datasheet_id, you can use the `get_nodes` tool to get all datasheet_ids
-Do not make up field key, if you don't know the field key, use the 'get_fields' tool to retrieve all fields in a datasheet 
+Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.
+Do not make up field key if you're not sure about it, use the 'get_fields' tool to retrieve all fields in a datasheet 
 and find the closest field name to use as the field key
 """
