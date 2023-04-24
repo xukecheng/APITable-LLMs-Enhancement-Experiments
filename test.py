@@ -8,12 +8,9 @@ from apitable_toolkit.toolkit import APITableToolkit
 from apitable_toolkit.utilities.apitable import APITableAPIWrapper
 from langchain.callbacks import get_openai_callback
 
-os.environ["OPENAI_API_KEY"] = "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 llm = ChatOpenAI(temperature=0)
-apitable = APITableAPIWrapper(
-    apitable_api_token="uskxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-)
+apitable = APITableAPIWrapper()
 toolkit = APITableToolkit.from_apitable_api_wrapper(apitable)
 agent = initialize_agent(
     toolkit.get_tools(),

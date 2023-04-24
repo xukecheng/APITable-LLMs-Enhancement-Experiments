@@ -112,11 +112,11 @@ The first three characters of the datasheet ID must be fixed as `dst` and must m
 Here are some examples, you should only respond in JSON format like this:
 1.Find all the records in datasheet id `dstS94qPZFXjC1LKns`, json would be:
 {{"datasheet_id": "dstS94qPZFXjC1LKns"}}
-2.Find records with key named "title" that match the word "test" in datasheet id `dstS94qPZFXjC1LKns`, json would be:
+2.Find records with key named "title" that match the word "test" in datasheet id dstS94qPZFXjC1LKns, json would be:
 dst = self.apitable.datasheet('dstS94qPZFXjC1LKns')
 {{"datasheet_id": "dstS94qPZFXjC1LKns", "filter_condition": {{"title": "test"}}}}
-3.Find and sort records by a specified field, say reverse order by a field named `test` in datasheet id `dstS94qPZFXjC1LKns`, json would be:
-{{"datasheet_id": "dstS94qPZFXjC1LKns", "sort_condition": [{{ "field": "test", "order": "desc" }}]}}
+3.Find and sort records by a specified field, field is the name of field and order has two values desc or asc, json would be:
+{{"datasheet_id": "dstS94qPZFXjC1LKns", "sort_condition": [{{ "field": "Create Date", "order": "desc" }}]}}
 4.Find records and set the number of records returned is 10 in datasheet id `dstS94qPZFXjC1LKns`, json would be:
 {{"datasheet_id": "dstS94qPZFXjC1LKns", "maxRecords_condition": 10}}
 Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.

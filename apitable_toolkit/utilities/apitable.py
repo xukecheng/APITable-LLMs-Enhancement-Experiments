@@ -14,6 +14,13 @@ from apitable_toolkit.tool.prompt import (
 )
 
 import json
+import tiktoken
+
+enc = tiktoken.encoding_for_model("text-davinci-003")
+
+
+def count_tokens(s):
+    return len(enc.encode(s))
 
 
 # TODO: think about error handling, more specific api specs
@@ -21,7 +28,7 @@ class APITableAPIWrapper(BaseModel):
     """Wrapper for APITable API."""
 
     apitable: Any  #: :meta private:
-    apitable_api_token: str
+    apitable_api_token: Optional[str]
     apitable_api_base: Optional[str] = "https://apitable.com"
 
     operations: List[Dict] = [
@@ -132,13 +139,13 @@ class APITableAPIWrapper(BaseModel):
         )
         return parsed_spaces_str
 
-    def get_nodes(self, query: str) -> str:
+    def get_nodes(self, params: dict) -> str:
         try:
-            params = json.loads(query)
+            space_id = params["space_id"]
         except Exception as e:
             return f"Found a error 'Action input need effective space_id', please try another tool to get right space_id."
         try:
-            nodes = self.apitable.space(space_id=params["space_id"]).nodes.all()
+            nodes = self.apitable.space(space_id=space_id).nodes.all()
             parsed_nodes = [json.loads(node.json()) for node in nodes]
             parsed_nodes_str = (
                 "Found " + str(len(parsed_nodes)) + " nodes:\n" + str(parsed_nodes)
@@ -149,9 +156,11 @@ class APITableAPIWrapper(BaseModel):
             )
         return parsed_nodes_str
 
-    def get_fields(self, query: str) -> str:
-        params = json.loads(query)
-        datasheet_id = params["datasheet_id"]
+    def get_fields(self, params: dict) -> str:
+        try:
+            datasheet_id = params["datasheet_id"]
+        except Exception as e:
+            return f"Found a error 'Action input need effective datasheet_id', please try another tool to get right datasheet_id."
         try:
             fields = self.apitable.datasheet(datasheet_id).fields.all()
             parsed_fields = [json.loads(field.json()) for field in fields]
@@ -162,11 +171,14 @@ class APITableAPIWrapper(BaseModel):
             parsed_fields_str = f"Found a error '{e}', please try another tool to get right datasheet_id."
         return parsed_fields_str
 
-    def create_fields(self, query: str) -> str:
-        params = json.loads(query)
-        space_id = params["space_id"]
-        datasheet_id = params["datasheet_id"]
-        field_data = params["field_data"]
+    def create_fields(self, params: dict) -> str:
+        try:
+            space_id = params["space_id"]
+            datasheet_id = params["datasheet_id"]
+            field_data = params["field_data"]
+        except Exception as e:
+            return f"Found a error '{e}', please try correct it"
+
         try:
             field = (
                 self.apitable.space(space_id)
@@ -180,9 +192,11 @@ class APITableAPIWrapper(BaseModel):
             )
         return parsed_fields_str
 
-    def get_records(self, query: str) -> str:
-        params = json.loads(query)
-        datasheet_id = params["datasheet_id"]
+    def get_records(self, params: dict) -> str:
+        try:
+            datasheet_id = params["datasheet_id"]
+        except Exception as e:
+            return f"Found a error 'Action input need effective datasheet_id', please try another tool to get right datasheet_id."
         dst = self.apitable.datasheet(datasheet_id)
         kwargs = {}
         if "filter_condition" in params:
@@ -201,9 +215,15 @@ class APITableAPIWrapper(BaseModel):
                 + " records:\n"
                 + str(parsed_records)
             )
+            if count_tokens(parsed_records_str) > 1000:
+                parsed_records_str = (
+                    "Found "
+                    + str(len(parsed_records))
+                    + " records, too many to show. Try to use maxRecords or filter_condition to limit"
+                )
         except Exception as e:
             if str(e) == "The sorted field does not exist":
-                parsed_records_str = f"Found a error '{e}', please try another tool to get right field_key."
+                parsed_records_str = f"Found a error '{e}', please try another tool to get right field name."
             elif str(e) == "api_param_formula_error":
                 parsed_records_str = (
                     f"Found a error '{e}', please try to make right filter_condition."
@@ -212,24 +232,22 @@ class APITableAPIWrapper(BaseModel):
                 parsed_records_str = f"Found a error '{e}', please try another tool."
         return parsed_records_str
 
-    def other(self, query: str) -> str:
-        context = {"self": self}
-        exec(f"result = {query}", context)
-        result = context["result"]
-        return str(result)
-
     def run(self, mode: str, query: str) -> str:
         if mode == "get_spaces":
             return self.get_spaces()
-        elif mode == "get_nodes":
-            return self.get_nodes(query)
+
+        try:
+            params = json.loads(query.replace("'", '"'))
+        except Exception as e:
+            return f"Found a error '{e}', you should only respond in JSON format"
+
+        if mode == "get_nodes":
+            return self.get_nodes(params)
         elif mode == "get_fields":
-            return self.get_fields(query)
+            return self.get_fields(params)
         elif mode == "create_fields":
-            return self.create_fields(query)
+            return self.create_fields(params)
         elif mode == "get_records":
-            return self.get_records(query)
-        elif mode == "other":
-            return self.other(query)
+            return self.get_records(params)
         else:
             raise ValueError(f"Got unexpected mode {mode}")
