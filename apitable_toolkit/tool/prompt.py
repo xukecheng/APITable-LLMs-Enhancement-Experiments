@@ -21,7 +21,7 @@ Don't proceed to the next question.
 
 Begin!
 Question: {input}
-Thought:{agent_scratchpad}"""
+Thought: {agent_scratchpad}"""
 
 
 APITABLE_GET_SPACES_PROMPT = """
@@ -35,8 +35,7 @@ This tool uses APITable's node API to help you search for datasheets, mirrors, d
 These are all types of nodes in APITable.
 The input to this tool is a space id.
 You should only respond in JSON format like this:
-{{"space_id": "spcjXzqVrjaP3"}}
-Do not make up a space_id if you're not sure about it, use the get_spaces tool to retrieve all available space_ids.
+Output a json object that contains the following keys: space_id
 """
 
 APITABLE_GET_FIELD_PROMPT = """
@@ -100,8 +99,7 @@ hasError | boolean | Default is False
 Do not make up field type, the num of field type is 22
 Do not make up properties, if you do not know the properties, then don't send field_data
 --------------------------
-You should only respond in JSON format like this:
-{{"space_id": "spcjXzqVrjaP3", "datasheet_id": "dstlRNFl8L2mufwT5t", "field_data": {{"defaultValue": "Default value"}}}}
+Output a json object that contains the following keys: space_id, datasheet_id, field_data
 """
 
 
@@ -110,16 +108,13 @@ This tool is a wrapper around APITable's record API, useful when you need to sea
 The input to this tool is a datasheet id string, and will be passed into Apitable's `datasheet` function,
 The first three characters of the datasheet ID must be fixed as `dst` and must meet this condition, 
 Here are some examples, you should only respond in JSON format like this:
-1.Find all the records in datasheet id `dstS94qPZFXjC1LKns`, json would be:
-{{"datasheet_id": "dstS94qPZFXjC1LKns"}}
-2.Find records with key named "title" that match the word "test" in datasheet id dstS94qPZFXjC1LKns, json would be:
-dst = self.apitable.datasheet('dstS94qPZFXjC1LKns')
-{{"datasheet_id": "dstS94qPZFXjC1LKns", "filter_condition": {{"title": "test"}}}}
-3.Find and sort records by a specified field, field is the name of field and order has two values desc or asc, json would be:
-{{"datasheet_id": "dstS94qPZFXjC1LKns", "sort_condition": [{{ "field": "Create Date", "order": "desc" }}]}}
-4.Find records and set the number of records returned is 10 in datasheet id `dstS94qPZFXjC1LKns`, json would be:
-{{"datasheet_id": "dstS94qPZFXjC1LKns", "maxRecords_condition": 10}}
-Do not make up a datasheet_id if you're not sure about it, use the get_nodes tool to retrieve all available datasheet_ids.
-Do not make up field key if you're not sure about it, use the 'get_fields' tool to retrieve all fields in a datasheet 
-and find the closest field name to use as the field key
+1.Find all the records in datasheet, output a json object that contains the following keys: datasheet_id
+2.Find records with special condition in datasheet, output a json object that contains the following keys: datasheet_id, filter_condition
+filter_condition is a json object which key is field name and value is lookup value, for example:
+"filter_condition": {{"title": "test"}}
+3.Find and sort records in datasheet, output a json object that contains the following keys: datasheet_id, sort_condition
+sort_condition is a list of json object, each json object has two keys: field and order, field is the name of field and order has two values desc or asc, for example:
+"sort_condition": [{{ "field": "Create Date", "order": "desc" }}]
+4.Find records and limit the number of returned values in datasheet, output a json object that contains the following keys: datasheet_id, maxRecords_condition
+maxRecords_condition is a number
 """
