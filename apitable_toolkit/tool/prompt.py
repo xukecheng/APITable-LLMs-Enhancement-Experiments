@@ -17,7 +17,6 @@ Thought: I now know the final answer
 Final Answer: the final answer to the original input question"""
 
 SUFFIX = """Output the final answer if the latest observation can solve the original input question.
-Don't proceed to the next question.
 
 Begin!
 Question: {input}
@@ -25,7 +24,7 @@ Thought: {agent_scratchpad}"""
 
 
 APITABLE_GET_SPACES_PROMPT = """
-This tool is useful when you need to fetch all the spaces the user has access to, 
+This tool is useful when you need to fetch all spaces the user has access to, 
 find out how many spaces there are, or as an intermediary step that involv searching by spaces. 
 there is no input to this tool.
 """

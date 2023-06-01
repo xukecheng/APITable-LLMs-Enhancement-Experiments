@@ -1,7 +1,5 @@
 from langchain.agents import AgentType
 from langchain.agents import initialize_agent
-from langchain.llms import OpenAI
-import os
 from apitable_toolkit.tool.prompt import PREFIX, FORMAT_INSTRUCTIONS, SUFFIX
 from langchain.chat_models import ChatOpenAI
 from apitable_toolkit.toolkit import APITableToolkit
