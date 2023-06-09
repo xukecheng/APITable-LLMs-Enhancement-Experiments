@@ -10,7 +10,7 @@ FORMAT_INSTRUCTIONS = """Use the following format:
 Question: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
-Action Input: the input of all actions can only be in JSON format
+Action Input: the input to the action
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
 Thought: I now know the final answer
@@ -24,7 +24,7 @@ Thought: {agent_scratchpad}"""
 
 
 APITABLE_GET_SPACES_PROMPT = """
-This tool is useful when you need to fetch all space ids the user has access to, 
+This tool is useful when you need to fetch all spaces the user has access to, 
 find out how many spaces there are, or as an intermediary step that involv searching by spaces. 
 there is no input to this tool.
 """
