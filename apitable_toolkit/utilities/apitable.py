@@ -11,10 +11,13 @@ from apitable_toolkit.tool.prompt import (
     APITABLE_GET_NODES_PROMPT,
     APITABLE_GET_RECORDS_PROMPT,
     APITABLE_GET_SPACES_PROMPT,
+    APITABLE_CREATE_DATASHEET_PROMPT,
 )
 
 import json
+import re
 import tiktoken
+
 
 enc = tiktoken.encoding_for_model("text-davinci-003")
 
@@ -56,6 +59,11 @@ class APITableAPIWrapper(BaseModel):
             "mode": "get_records",
             "name": "Get Records",
             "description": APITABLE_GET_RECORDS_PROMPT,
+        },
+        {
+            "mode": "create_datasheets",
+            "name": "Create Datasheets",
+            "description": APITABLE_CREATE_DATASHEET_PROMPT,
         },
         # {
         #     "mode": "other",
@@ -192,6 +200,25 @@ class APITableAPIWrapper(BaseModel):
             )
         return parsed_fields_str
 
+    def create_datasheets(self, params: dict) -> str:
+        try:
+            space_id = params["space_id"]
+            name = params["name"]
+            field_data = params["field_data"]
+        except Exception as e:
+            return f"Found a error 'Action input need effective {e}', please generate effective {e} and try again"
+
+        try:
+            field = self.apitable.space(space_id).datasheets.create(
+                {"name": name, "fields": field_data}
+            )
+            parsed_fields_str = "Datasheet created! \n" + str(field.json())
+        except Exception as e:
+            parsed_fields_str = (
+                f"Found a error '{e}', please try to correct field_data."
+            )
+        return parsed_fields_str
+
     def get_records(self, params: dict) -> str:
         try:
             datasheet_id = params["datasheet_id"]
@@ -237,9 +264,16 @@ class APITableAPIWrapper(BaseModel):
             return self.get_spaces()
 
         try:
-            params = json.loads(query.replace("'", '"'))
+            params = json.loads(query)
         except Exception as e:
-            return f"Found a error '{e}', you should only respond in JSON format"
+            return f"Found a error '{e}', you should only output Action Input in JSON format"
+
+        if "space_id" in params:
+            pattern = r"^spc"
+            if re.match(pattern, params["space_id"], re.IGNORECASE):
+                pass
+            else:
+                return f"Found a error 'Action input need effective space_id', please try another tool to get right space_id."
 
         if mode == "get_nodes":
             return self.get_nodes(params)
@@ -249,5 +283,7 @@ class APITableAPIWrapper(BaseModel):
             return self.create_fields(params)
         elif mode == "get_records":
             return self.get_records(params)
+        elif mode == "create_datasheets":
+            return self.create_datasheets(params)
         else:
             raise ValueError(f"Got unexpected mode {mode}")

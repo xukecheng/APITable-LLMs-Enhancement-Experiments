@@ -23,14 +23,15 @@ agent = initialize_agent(
 )
 
 with get_openai_callback() as cb:
-    # agent.run("What spaces do I have")
-    # agent.run("What datasheets do I have")
-
-    # agent.run(
-    #     "The space_id is spctqtTZpssYw. Tell me the datasheet ID whose name has 'MAU' in this space"
-    # )
-
-    agent.run("Tell me the latest value of APITable MAU in xukecheng's space")
+    try:
+        agent.run(
+            "Create a datasheet for Project management in xukecheng's space, need to include the following fields: name, description, start_date, end_date, status, owner, priority, progress, comments"
+        )
+        # agent.run("What spaces do I have")
+        # agent.run("What datasheets do I have")
+        # agent.run("Tell me the latest value of APITable MAU in xukecheng's space")
+    except Exception as e:
+        print(e)
     # agent.run("Create all field type fields in AITEST of xukecheng's space")
     print(f"Total Tokens: {cb.total_tokens}")
     print(f"Prompt Tokens: {cb.prompt_tokens}")
