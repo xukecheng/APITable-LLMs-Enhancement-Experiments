@@ -9,7 +9,7 @@ FORMAT_INSTRUCTIONS = """Use the following format:
 
 Question: the input question you must answer
 Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
+Action: the action to take, must be one of [{tool_names}]
 Action Input: the input to the action
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
@@ -18,9 +18,8 @@ Final Answer: the final answer to the original input question"""
 
 SUFFIX = """Output the final answer if the latest observation can solve the original input question.
 
-Begin!
 Question: {input}
-Thought: {agent_scratchpad}"""
+{agent_scratchpad}"""
 
 
 APITABLE_GET_SPACES_PROMPT = """
@@ -100,10 +99,9 @@ hasError | boolean | Default is False
 """
 
 APITABLE_GET_RECORDS_PROMPT = """
-This tool is a wrapper around APITable's record API, useful when you need to search for records.
-The input to this tool is a datasheet id string, and will be passed into Apitable's `datasheet` function,
-The first three characters of the datasheet ID must be fixed as `dst` and must meet this condition, 
-Here are some examples, you should only respond in JSON format like this:
+This tool is a wrapper around APITable's record API, allowing you to retrieve specific data from a datasheet.
+To use this tool, provide a datasheet ID as input, which should follow the format "dstXXXXXX".
+Here are some examples of how to use this tool:
 1.Find all the records in datasheet, output a json object that contains the following keys: datasheet_id
 2.Find records with special condition in datasheet, output a json object that contains the following keys: datasheet_id, filter_condition
 filter_condition is a json object which key is field name and value is lookup value, for example:

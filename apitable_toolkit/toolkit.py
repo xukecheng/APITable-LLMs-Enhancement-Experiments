@@ -5,6 +5,9 @@ from langchain.agents.agent_toolkits.base import BaseToolkit
 from langchain.tools import BaseTool
 from apitable_toolkit.tool.tool import APITableAction
 from apitable_toolkit.utilities.apitable import APITableAPIWrapper
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.schema import Document
 
 
 class APITableToolkit(BaseToolkit):
@@ -28,6 +31,21 @@ class APITableToolkit(BaseToolkit):
         ]
         return cls(tools=tools)
 
-    def get_tools(self) -> List[BaseTool]:
+    def get_retriever(self):
+        tools = self.tools[2:]
+        docs = [
+            Document(page_content=t.description, metadata={"index": i + 2})
+            for i, t in enumerate(tools)
+        ]
+        vector_store = FAISS.from_documents(docs, OpenAIEmbeddings())
+        retriever = vector_store.as_retriever(search_kwargs={"k": 2})
+        return retriever
+
+    def get_tools(self, prompt: str) -> List[BaseTool]:
         """Get the tools in the toolkit."""
-        return self.tools
+        retriever = self.get_retriever()
+        docs = retriever.get_relevant_documents(prompt)
+        tools = [self.tools[d.metadata["index"]] for d in docs]
+        tools.append(self.tools[0])
+        tools.append(self.tools[1])
+        return tools
