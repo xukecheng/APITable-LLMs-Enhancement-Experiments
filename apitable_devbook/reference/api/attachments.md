@@ -1,0 +1,1 @@
+Currently the APITable is only open for uploading attachments.

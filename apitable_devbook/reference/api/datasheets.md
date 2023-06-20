@@ -1,0 +1,1 @@
+At the moment, only the interface for creating tables is open for APITable.
