@@ -1,2 +1,8 @@
 langchain
 Apitable
+pyautogen
+google-api-python-client
+tiktoken
+chromadb
+pypdf
+sentence_transformers

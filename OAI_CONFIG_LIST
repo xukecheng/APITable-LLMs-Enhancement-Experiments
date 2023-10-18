@@ -1,0 +1,12 @@
+[
+  {
+    "model": "gpt-35-turbo-16k",
+    "api_type": "azure",
+    "api_version": "2023-07-01-preview"
+  },
+  {
+    "model": "gpt-4",
+    "api_type": "azure",
+    "api_version": "2023-07-01-preview"
+  }
+]

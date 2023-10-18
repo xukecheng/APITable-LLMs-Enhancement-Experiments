@@ -1,0 +1,3728 @@
+# Define this file to generate the corresponding API document. It conforms to the openapi specification.
+# For the part of documents that need to be supplemented, write markdown uniformly in the api directory, and then use $ref here to reference documents.
+openapi: 3.1.0
+
+info:
+  title: AITable API Reference manual
+  description:
+    $ref: "./api/openapi.md"
+  version: "beta"
+  contact: {}
+tags:
+  - name: Record
+    description:
+      $ref: "./api/records.md"
+  - name: Attachment
+    description:
+      $ref: "./api/attachments.md"
+  - name: Field
+    description:
+      $ref: "./api/fields.md"
+  - name: Datasheet
+    description:
+      $ref: "./api/datasheets.md"
+  - name: View
+    description:
+      $ref: ./api/views.md
+  - name: Space
+    description:
+      $ref: ./api/spaces.md
+  - name: Node
+    description:
+      $ref: ./api/nodes.md
+  - name: Member
+    description:
+      $ref: ./api/members.md
+  - name: Team
+    description:
+      $ref: ./api/teams.md
+  - name: Role
+    description:
+      $ref: ./api/roles.md
+  - name: AI
+    description:
+      $ref: ./api/ai.md
+
+x-tagGroups:
+  - name: BASIC
+    tags:
+      - Record
+      - Field
+      - View
+      - Datasheet
+      - Attachment
+  - name: ADVANCED
+    tags:
+      - Space
+      - Node
+      - AI
+  - name: CONTACTS
+    tags:
+      - Member
+      - Team
+      - Role
+
+servers:
+  - url: https://aitable.ai
+    description: "AITable API server address"
+components:
+  schemas:
+    ApiRecordDto:
+      type: object
+      properties:
+        recordId:
+          type: string
+          example: recV3ElniQavTNyJG
+          description: record ID
+        fields:
+          type: object
+          description: "The data of the corresponding field in a record, the return format is {'fieldName': 'fielValue'}, please refer to [Record](#tag/Record) for details"
+        createdAt:
+          type: number
+          description: "The creation time of the record, in timestamp format"
+        updatedAt:
+          type: number
+          description: "The modification time of the record, in timestamp format"
+      required:
+        - recordId
+        - fields
+        - createdAt
+        - updatedAt
+    PageVo:
+      type: object
+      properties:
+        pageNum:
+          type: number
+          example: 1
+          description: The current pagination number.
+        records:
+          description: All record data returned by the current page, the data structure of each record can refer to [here](#tag/Record)
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiRecordDto"
+        pageSize:
+          type: number
+          example: 100
+          description: The actual number of records returned per page.If 'pageSize=100' is specified when requesting, but the actual number of records is only 35, 35 is returned.
+        total:
+          type: number
+          example: 500
+          description: The total number of records that meet the filter criteria.
+      required:
+        - pageNum
+        - records
+        - pageSize
+        - total
+    RecordPageVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/PageVo"
+      required:
+        - success
+        - code
+        - message
+        - data
+    MetaFieldItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: fidV3ElniQavTNyJG
+          description: Field ID.
+        name:
+          type: string
+          example: Title
+          description: Field name.
+        type:
+          type: string
+          example: SingleText
+          description: For field type, see [#field-types-and-attributes](#field-types-and-attributes) for possible values.
+        desc:
+          type: string
+          example: desc
+          description: Field description, the column description.
+        property:
+          type: object
+          description: Field attributes. Different fields have different attributes. Please refer to the description of various fields in the [#field-types-and-attributes](#field-types-and-attributes) section for details.
+          properties:
+            defaultValue:
+              type: string
+              example: "To be supplemented"
+      required:
+        - id
+        - name
+        - type
+    FieldCreateRo:
+      type: object
+      properties:
+        fields:
+          type: object
+          description: In the newly created record, specify which fields and corresponding values need to be created.
+          example:
+            Currency: 5.53
+            Single choice: Single choice 2
+      required:
+        - fields
+    SingleText:
+      description: Single line text
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Single line text attribute
+              properties:
+                defaultValue:
+                  type: string
+                  description: Default text content
+                  example: Default text text
+    Text:
+      description: Multiline Text
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    Attachment:
+      description: attachment
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    URL:
+      description: url
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    Phone:
+      description: phone
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    Email:
+      description: email
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    AutoNumber:
+      description: Autoincrement number
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    CreatedBy:
+      description: Created by
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+    SelectPropertyOption:
+      type: object
+      description: Option Configuration
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Option Name
+        color:
+          type: string
+          description: Option color, see the name of [color value list](/widget/colors) for details
+          example: deepPurple_0
+    SelectProperty:
+      required:
+        - options
+      properties:
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/SelectPropertyOption"
+        defaultValue:
+          type: string
+          description: Default option, corresponding to the name of an option in options
+    SingleSelect:
+      description: Single choice
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Single choice attribute
+              allOf:
+                - $ref: "#/components/schemas/SelectProperty"
+    MultiSelect:
+      description: Multiple choice
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Multiple selection attribute
+              allOf:
+                - $ref: "#/components/schemas/SelectProperty"
+    Number:
+      description: Number
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Numeric Attributes
+              required:
+                - precision
+              properties:
+                defaultValue:
+                  type: string
+                  description: Default value, blank by default
+                  example: 2
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 0
+                symbol:
+                  type: string
+                  description: Numeric unit, displayed on the right side of the number, blank by default
+                  example: square meter
+    Currency:
+      description: Currency
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          # required:
+          #   - property
+          properties:
+            property:
+              description: Monetary attribute
+              properties:
+                defaultValue:
+                  type: string
+                  description: Default value, blank by default
+                  example: 1000
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 2
+                symbol:
+                  type: string
+                  description: Numeric unit, displayed on the right side of the number, blank by default
+                  example: ￥
+                symbolAlign:
+                  type: string
+                  description: The alignment of the currency symbol (optional). The default value is Default (the currency unit is next to the left of the value). Other values are Left (the currency unit is fixed to the left) and Right (the currency unit is fixed to the right
+                  example: Default
+    Percent:
+      description: Percentage
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Percent attribute
+              required:
+                - precision
+              properties:
+                defaultValue:
+                  type: string
+                  description: Default value, blank by default
+                  example: 0.85
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 1
+    DateTime:
+      description: Date
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Date attribute
+              required:
+                - dateFormat
+              properties:
+                dateFormat:
+                  type: string
+                  enum:
+                    - "YYYY/MM/DD"
+                    - "YYYY-MM-DD"
+                    - "DD/MM/YYYY"
+                    - "YYYY-MM"
+                    - "MM-DD"
+                    - "YYYY"
+                    - "MM"
+                    - "DD"
+                  description: Date Format
+                timeFormat:
+                  type: string
+                  enum:
+                    - "HH:mm"
+                    - "hh:mm"
+                  description: Time format
+                autoFill:
+                  type: boolean
+                  description: Automatically fill in the creation time when creating a new record
+                includeTime:
+                  type: boolean
+                  description: Include time or not
+                  example: true
+    LastModifiedTime:
+      description: Date
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Date attribute
+              required:
+                - dateFormat
+                - collectType
+              properties:
+                dateFormat:
+                  type: string
+                  enum:
+                    - "YYYY/MM/DD"
+                    - "YYYY-MM-DD"
+                    - "DD/MM/YYYY"
+                    - "YYYY-MM"
+                    - "MM-DD"
+                    - "YYYY"
+                    - "MM"
+                    - "DD"
+                  description: Date format
+                timeFormat:
+                  type: string
+                  enum:
+                    - "HH:mm"
+                    - "hh:mm"
+                  description: Time format
+                includeTime:
+                  type: boolean
+                  description: Include time or not
+                  example: true
+                collectType:
+                  type: number
+                  enum:
+                    - 0
+                    - 1
+                  description: When the value is 0, the updater will be changed when any field is updated; when the value is 1, the updater will be changed only when the specified field is updated
+                fieldIdCollection:
+                  type: array
+                  description: Filed ID Aggregate
+    CreatedTime:
+      description: Date
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Date attribute
+              required:
+                - dateFormat
+              properties:
+                dateFormat:
+                  type: string
+                  enum:
+                    - "YYYY/MM/DD"
+                    - "YYYY-MM-DD"
+                    - "DD/MM/YYYY"
+                    - "YYYY-MM"
+                    - "MM-DD"
+                    - "YYYY"
+                    - "MM"
+                    - "DD"
+                  description: Date format
+                timeFormat:
+                  type: string
+                  enum:
+                    - "HH:mm"
+                    - "hh:mm"
+                  description: Time format
+                includeTime:
+                  type: boolean
+                  description: Include time or not
+                  example: true
+    Member:
+      description: Member
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          # required:
+          #   - property
+          properties:
+            property:
+              description: Member Properties
+              # required:
+              #   - format
+              properties:
+                isMulti:
+                  type: boolean
+                  description: Allow multiple members
+                  example: true
+                shouldSendMsg:
+                  type: boolean
+                  description: Send notification or not
+                  example: true
+    Checkbox:
+      description: Check
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Check attribute
+              required:
+                - icon
+              properties:
+                icon:
+                  type: string
+                  description: For the icon representation of the selected value, please refer to [Expression Pack Enumeration](/widget/emojis)
+                  example: smile
+    Rating:
+      description: Rating
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Scoring attribute
+              required:
+                - icon
+                - max
+              properties:
+                icon:
+                  type: string
+                  description: For the icon representation of the scoring value, please refer to [Expression Pack Enumeration](/widget/emojis)
+                  example: star
+                max:
+                  type: number
+                  description: The maximum score is 1-10
+                  example: 5
+    TwoWayLink:
+      description: Two-way link
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Two-way link Attribute
+              required:
+                - foreignDatasheetId
+              properties:
+                foreignDatasheetId:
+                  type: string
+                  description: Linked datasheet ID
+                limitToViewId:
+                  type: string
+                  description: Specify the view ID to filter records
+                limitSingleRecord:
+                  type: boolean
+                  description: Limit the selection of only one record
+    OneWayLink:
+      description: One-Way link
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: One-Way link Attribute
+              required:
+                - foreignDatasheetId
+              properties:
+                foreignDatasheetId:
+                  type: string
+                  description: Linked datasheet ID
+                limitToViewId:
+                  type: string
+                  description: Specify the view ID to filter records
+                limitSingleRecord:
+                  type: boolean
+                  description: Limit the selection of only one record
+    FormatDateTime:
+      description: Date Format
+      allOf:
+        - $ref: "#/components/schemas/FormatProperty"
+        - type: object
+          # required:
+          #   - format
+          properties:
+            format:
+              description: Date attribute
+              required:
+                - dateFormat
+                - timeFormat
+              properties:
+                dateFormat:
+                  type: string
+                  enum:
+                    - "YYYY/MM/DD"
+                    - "YYYY-MM-DD"
+                    - "DD/MM/YYYY"
+                    - "YYYY-MM"
+                    - "MM-DD"
+                    - "YYYY"
+                    - "MM"
+                    - "DD"
+                  description: Date Format
+                timeFormat:
+                  type: string
+                  enum:
+                    - "HH:mm"
+                    - "hh:mm"
+                  description: Time format
+                includeTime:
+                  type: boolean
+                  description: Include time or not
+                  example: true
+    FormatNumber:
+      description: Number
+      allOf:
+        - $ref: "#/components/schemas/FormatProperty"
+        - type: object
+          # required:
+          #   - format
+          properties:
+            format:
+              description: Numeric Attributes
+              # required:
+              #   - precision
+              properties:
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 0
+    FormatPercent:
+      description: Percentage
+      allOf:
+        - $ref: "#/components/schemas/FormatProperty"
+        - type: object
+          # required:
+          #   - format
+          properties:
+            format:
+              description: Percent attribute
+              properties:
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 1
+    FormatCurrency:
+      description: Currency
+      allOf:
+        - $ref: "#/components/schemas/FormatProperty"
+        - type: object
+          # required:
+          #   - format
+          properties:
+            format:
+              description: Monetary attribute
+              properties:
+                precision:
+                  type: number
+                  description: Represents the number of decimal places, that is, the numerical precision. Values are 0 (representing an integer), 1 (accurate to one decimal place), 2 (accurate to two decimal places), 3 (accurate to three decimal places), 4 (accurate to four decimal places)
+                  example: 2
+                symbol:
+                  type: string
+                  description: Numeric unit, displayed on the right side of the number, blank by default
+                  example: ￥
+    FormatProperty:
+      description: Format attribute, applicable to Magic Lookup and Formula
+      properties:
+        type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          DateTime: "#/components/schemas/FormatDateTime"
+          Number: "#/components/schemas/FormatNumber"
+          Percent: "#/components/schemas/FormatPercent"
+          Currency: "#/components/schemas/FormatCurrency"
+        #   SingleText: "#/components/schemas/SingleText"
+        #   Text: "#/components/schemas/Text"
+        # type:
+        #   type: string
+        #   enum:
+        #     - DateTime
+        #     - Number
+        #     - Percent
+        #     - Currency
+        # format:
+        #   type: object
+    MagicLookUp:
+      description: A lookup field is a field type related to OneWayLink or TwoWayLink field.It displays the raw data, performs calculations, creates aggregates based on specific cells of records that are linked to another fields in other datasheet.
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: MagicLookUp Properties
+              required:
+                - relatedLinkFieldId
+                - targetFieldId
+              properties:
+                relatedLinkFieldId:
+                  type: string
+                  description: The linked field ID of the referenced current table
+                targetFieldId:
+                  type: string
+                  description: Field ID queried in the linked table
+                rollupFunction:
+                  type: string
+                  enum:
+                    - VALUES
+                    - AVERAGE
+                    - COUNT
+                    - COUNTA
+                    - COUNTALL
+                    - SUM
+                    - MIN
+                    - MAX
+                    - AND
+                    - OR
+                    - XOR
+                    - CONCATENATE
+                    - ARRAYJOIN
+                    - ARRAYUNIQUE
+                    - ARRAYCOMPACT
+                  description: For summary function and parameter meaning, refer to [Lookup Product Manual](https://help.aitable.ai/docs/guide/manual-field-lookup)
+                format:
+                  allOf:
+                    - $ref: "#/components/schemas/FormatProperty"
+                  # type: object
+                enableFilterSort:
+                  type: boolean
+                  description: Whether to enable filtering/sorting
+                sortInfo:
+                  type: object
+                  description: Sorting settings
+                  required:
+                    - rules
+                  properties:
+                    rules:
+                      type: array
+                      description: The array of sorting rules
+                      minItems: 1
+                      maxItems: 1
+                      items:
+                        type: object
+                        required:
+                          - fieldId
+                          - desc
+                        properties:
+                          fieldId:
+                            type: string
+                            description: Sorting field ID
+                          desc:
+                            type: boolean
+                            description: Whether to sort in descending order
+                filterInfo:
+                  type: object
+                  description: Filter settings
+                  required:
+                    - conjunction
+                    - conditions
+                  properties:
+                    conjunction:
+                      type: string
+                      enum:
+                        - and
+                        - or
+                      description: Combination mode of filter conditions
+                    conditions:
+                      type: array
+                      description: Array of filtering conditions
+                      items:
+                        type: object
+                        required:
+                          - fieldId
+                          - operator
+                        properties:
+                          fieldId:
+                            type: string
+                            description: Field ID of filter fields
+                          operator:
+                            type: string
+                            description: Operator of the filter condition
+                            enum:
+                              - is
+                              - isNot
+                              - contains
+                              - doesNotContain
+                              - isEmpty
+                              - isNotEmpty
+                              - isGreater
+                              - isGreaterEqual
+                              - isLess
+                              - isLessEqual
+                              - isRepeat
+                          value:
+                            description: Reference value of the filter condition
+                lookUpLimit:
+                  type: string
+                  enum:
+                    - ALL
+                    - FIRST
+                  description: Limit the number of displayed reference records. ALL displays all; FIRST displays the first one.
+    Formula:
+      description: Intelligent formula
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          properties:
+            property:
+              description: Smart Formula Properties
+              properties:
+                expression:
+                  type: string
+                  description: Formula Expression
+                format:
+                  allOf:
+                    - $ref: "#/components/schemas/FormatProperty"
+    LastModifiedBy:
+      description: Updated by
+      allOf:
+        - $ref: "#/components/schemas/FieldItemRo"
+        - type: object
+          required:
+            - property
+          properties:
+            property:
+              description: Update person attribute
+              required:
+                - collectType
+              properties:
+                collectType:
+                  type: number
+                  enum:
+                    - 0
+                    - 1
+                  description: When the value is 0, the updater will be changed when any field is updated; when the value is 1, the updater will be changed only when the specified field is updated
+                fieldIdCollection:
+                  type: array
+                  description: Filed ID Set
+    FieldItemRo:
+      type: object
+      discriminator:
+        propertyName: type
+        mapping:
+          SingleText: "#/components/schemas/SingleText"
+          Text: "#/components/schemas/Text"
+          SingleSelect: "#/components/schemas/SingleSelect"
+          MultiSelect: "#/components/schemas/MultiSelect"
+          Number: "#/components/schemas/Number"
+          Currency: "#/components/schemas/Currency"
+          Percent: "#/components/schemas/Percent"
+          DateTime: "#/components/schemas/DateTime"
+          Attachment: "#/components/schemas/Attachment"
+          Member: "#/components/schemas/Member"
+          Checkbox: "#/components/schemas/Checkbox"
+          Rating: "#/components/schemas/Rating"
+          URL: "#/components/schemas/URL"
+          Phone: "#/components/schemas/Phone"
+          Email: "#/components/schemas/Email"
+          OneWayLink: "#/components/schemas/OneWayLink"
+          TwoWayLink: "#/components/schemas/TwoWayLink"
+          MagicLookUp: "#/components/schemas/MagicLookUp"
+          Formula: "#/components/schemas/Formula"
+          AutoNumber: "#/components/schemas/AutoNumber"
+          CreatedTime: "#/components/schemas/CreatedTime"
+          LastModifiedTime: "#/components/schemas/LastModifiedTime"
+          CreatedBy: "#/components/schemas/CreatedBy"
+          LastModifiedBy: "#/components/schemas/LastModifiedBy"
+      properties:
+        type:
+          type: string
+          example: Text
+          description: Field Type
+        name:
+          type: string
+          example: Title
+          description: Field name, no more than 100 characters
+        # property:
+        #   type: object
+        #   description: Field attributes. Different fields have different attributes. If there is no required identifier, the field attribute is not required. Please select the corresponding type above to view the attribute structure.
+      required:
+        - name
+        - type
+        # - property
+    DatasheetCreateRo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: My Datasheet
+          description: Datasheet name, no more than 100 characters
+        description:
+          type: string
+          example: This is a description
+          description: Table description, no more than 500 characters
+        folderId:
+          type: string
+          example: fodn173Q0e8nC
+          description: The folder ID; if it is blank, it will be the working directory by default
+        preNodeId:
+          type: string
+          example: dstQJl6BGku1WfLPTD
+          description: The ID of the previous node. If it is empty, it will be moved to the first place
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldItemRo"
+          description: Field list. If it is blank, 3 columns of default fields will be added
+      required:
+        - name
+    FieldCreateItemVo:
+      properties:
+        id:
+          type: string
+          example: fldupsvkR2ATB
+          description: Field ID
+        name:
+          type: string
+          example: Title
+          description: Field Name
+    FieldCreateVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: fldupsvkR2ATB
+              description: Field ID
+            name:
+              type: string
+              example: Title
+              description: Field Name
+      required:
+        - success
+        - code
+        - message
+        - data
+    FieldDeleteVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+      required:
+        - success
+        - code
+        - message
+        - data
+    DatasheetCreateVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: dstbs2U7mt8AEqgKuh
+              description: Form ID
+            createdAt:
+              type: number
+              example: 1648648690000
+              description: Create Timestamp
+            fields:
+              type: array
+              items:
+                $ref: "#/components/schemas/FieldCreateItemVo"
+      required:
+        - success
+        - code
+        - message
+        - data
+    FieldDeleteRo:
+      type: object
+      properties:
+        conversion:
+          type: string
+          example: fldupsvkR2ATB
+          description: Field ID
+    RecordCreateRo:
+      type: object
+      properties:
+        records:
+          description: The record data to be created, including the recorded fields and field values.
+          example:
+            - fields:
+                matter: 「Organization Module - Organization of the address book panel
+                problem description: It is essentially the same as the above requirements
+                classification: Product demand
+                Review date: "2019-10-30T00:00:00.000Z"
+            - fields:
+                matter: 「Member」 module - set the department
+                Problem description: |-
+                  After selecting a person, you can adjust multiple departments to which he belongs
+                  After selecting a department, you can also add members to the current department
+                classification: product demand
+                review date: "2019-10-29T16:00:00.000Z"
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldCreateRo"
+        fieldKey:
+          type: string
+          enum:
+            - name
+            - id
+          description: The key used when writing fields and returning fields. The default is' name '(field name). If you want to use fieldId as the write and return method, you need to explicitly specify it as' id '(using' id 'can avoid code invalidation caused by modifying field names).
+          default: name
+      required:
+        - records
+    ListVo:
+      type: object
+      properties:
+        records:
+          description: List of records successfully created or updated.
+          type: array
+          items:
+            $ref: "#/components/schemas/ApiRecordDto"
+      required:
+        - records
+
+    MetaViewItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: viwpdA8TUBp5r
+          description: View ID
+        name:
+          type: string
+          example: Order completed
+          description: View Name
+        type:
+          type: string
+          example: Grid
+          description: View type. Possible values are 'Grid', 'Gallery', 'Kanban', and 'Gantt'
+      required:
+        - id
+        - name
+        - type
+
+    MetaViewResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          description: The returned business data body.
+          properties:
+            views:
+              type: array
+              items:
+                $ref: "#/components/schemas/MetaViewItem"
+      required:
+        - success
+        - code
+        - message
+        - data
+    MetaFieldResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          description: The returned business data body.
+          properties:
+            fields:
+              type: array
+              items:
+                $ref: "#/components/schemas/MetaFieldItem"
+      required:
+        - success
+        - code
+        - message
+        - data
+    RecordListVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/ListVo"
+      required:
+        - success
+        - code
+        - message
+        - data
+    AttachmentUploadRo:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The local absolute path of the attachment to be uploaded.
+      required:
+        - file
+    AttachmentDto:
+      type: object
+      properties:
+        token:
+          type: string
+          example: space/2020/07/28/6fdc652231a8480398e302606ae28213
+          description: The storage token of the attachment.
+        name:
+          type: string
+          example: 9d4911932181f254433a86b05797f9a6.jpeg
+          description: The name of the attachment.
+        size:
+          type: number
+          example: 7194
+          description: The storage size of the attachment, in bytes.
+        width:
+          type: number
+          example: 479
+          description: If the attachment is a picture, this field exists to indicate the width of the picture.
+        height:
+          type: number
+          example: 478
+          description: If the attachment is a picture, this field exists to indicate the height of the picture.
+        mimeType:
+          type: string
+          example: image/jpeg
+          description: The media type of the attachment.
+        preview:
+          type: string
+          example: "***"
+          description: This field exists only when attachments generate thumbnails, indicating the network access address of thumbnails.
+        url:
+          type: string
+          example: "***"
+          description: The network access address of the attachment, valid for 2 hours
+      required:
+        - token
+        - name
+        - size
+        - width
+        - height
+        - mimeType
+    AttachmentVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/AttachmentDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    RecordUpdateRo:
+      type: object
+      properties:
+        records:
+          description: The record data to be updated, including the record fields and field values.
+          example:
+            - recordId: recrHnjVuH6Fd
+              fields:
+                currency: 5.53
+                single choice: Single choice 1
+            - recordId: recwZ6yV3Srv3
+              fields:
+                currency: 5.53
+                single choice: Single choice 2
+          type: array
+          # items:
+          #   $ref: "#/components/schemas/FieldUpdateRo"
+        fieldKey:
+          type: string
+          enum:
+            - name
+            - id
+          description: The key used when writing fields and returning fields. The default is' name '(field name).If you want to use fieldId as the write and return method, you need to explicitly specify it as' id '(using' id 'can avoid code invalidation caused by modifying field names).
+          default: name
+      required:
+        - records
+    RecordDeleteVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: boolean
+          description: The returned business data body.
+      required:
+        - success
+        - code
+        - message
+        - data
+
+    NodeDetailItem:
+      type: object
+      description: The returned business data body.
+      allOf:
+        - $ref: "#/components/schemas/NodeItem"
+        - properties:
+            children:
+              type: array
+              description: Only when the file type is' Folder ',' children 'information will be returned` The array under children 'is the outermost file list under the folder
+              # items:
+              #   $ref: "#/components/schemas/NodeItem"
+
+    NodeItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "fodwrbgo8lDpbUjZzm"
+          description: File ID
+        name:
+          type: string
+          example: "Procurement management"
+          description: Document name
+        type:
+          type: string
+          example: "Folder"
+          description: File type. Possible values include 'Datasheet', 'Mirror', 'Folder', 'Form', and 'Dashboard'
+          enum:
+            - Datasheet
+            - Folder
+            - Form
+            - Dashboard
+        icon:
+          type: string
+          example: "🤠"
+          description: File icon, such as 🤠
+        isFav:
+          type: boolean
+          example: true
+          description: Whether this file has been marked as a star
+      required:
+        - id
+        - name
+        - type
+        - icon
+        - isFav
+    NodeInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "fodwrbgo8lDpbUjZzm"
+          description: File ID
+        name:
+          type: string
+          example: "Procurement management"
+          description: Document name
+        type:
+          type: string
+          example: "Folder"
+          description: The specific type of file the user wants to retrieve, enumeration values are case-sensitive.
+          enum:
+            - Datasheet
+            - Mirror
+            - Folder
+            - Form
+            - Dashboard
+        icon:
+          type: string
+          example: "🤠"
+          description: File icon, such as 🤠
+        parentId:
+          type: string
+          example: "fodEqT83BQPz3"
+          description: Parent Node ID.
+        permission:
+          type: number
+          example: 0
+          description: By providing the permissions associated with their API token, users can retrieve all file nodes within their account that match those permissions.
+        isFav:
+          type: boolean
+          example: true
+          description: Pin status. This parameter indicates whether the current node is pinned to the "Pin" section in the left sidebar.
+      required:
+        - id
+        - name
+        - type
+        - icon
+        - permission
+        - isFav
+
+    NodeDetailResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          $ref: "#/components/schemas/NodeDetailItem"
+      required:
+        - success
+        - code
+        - message
+        - data
+
+    SpaceItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "spczdmQDfBAn5"
+          description: Space ID
+        name:
+          type: string
+          example: "AITable No.1"
+          description: Space name
+        isAdmin:
+          type: boolean
+          example: true
+          description: Whether the current requesting user is the primary administrator of this space
+      required:
+        - id
+        - name
+
+    SpaceListResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          description: The returned business data body.
+          properties:
+            spaces:
+              type: array
+              items:
+                $ref: "#/components/schemas/SpaceItem"
+    NodeListResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          description: The returned business data body.
+          properties:
+            nodes:
+              type: array
+              description: List of all files returned.
+              items:
+                $ref: "#/components/schemas/NodeItem"
+    NodeInfosResp:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          type: object
+          description: The returned business data body.
+          properties:
+            nodes:
+              type: array
+              description: List of all nodes returned.
+              items:
+                $ref: "#/components/schemas/NodeInfo"
+    EmbedLinkPayloadPrimarySideBarDto:
+      type: object
+      properties:
+        collapsed:
+          type: boolean
+          description: The initial state of the directory. The default value is false, which indicates folding.
+    EmbedLinkPayloadViewToolBarDto:
+      type: object
+      properties:
+        basicTools:
+          type: boolean
+          description: The default value is false. The basic toolbar (including grouping, filtering, row height, hidden fields and sorting) is not displayed in the embedded interface
+        widgetBtn:
+          type: boolean
+          description: The default value is false, and the "widget" button is not displayed in the embedded interface
+        apiBtn:
+          type: boolean
+          description: The default value is false. The "API" button is not displayed in the embedded interface
+        formBtn:
+          type: boolean
+          description: The default value is false. The "Magic Form" button is not displayed in the embedded interface
+        historyBtn:
+          type: boolean
+          description: The default value is false. The "Time Machine" button is not displayed in the embedded interface
+        robotBtn:
+          type: boolean
+          description: The default value is false. The "Robot" button is not displayed in the embedded interface
+        addWidgetBtn:
+          type: boolean
+          description: The default value is false, and the "Add widget" button is not displayed in the dashboard embed interface
+        fullScreenBtn:
+          type: boolean
+          description: The default value is false, and the "Full Screen" button is not displayed in the dashboard embed interface
+        formSettingBtn:
+          type: boolean
+          description: The default value is false, the "Settings" button is not displayed in the embedded interface
+    EmbedLinkPayloadViewControlDto:
+      type: object
+      properties:
+        viewId:
+          description: Specify a single view for embedding,Only valid for datasheet embedding.
+          type: string
+        tabBar:
+          description: >-
+            Whether to display the view label bar. The default value is true, indicating that the view label bar is displayed.
+            If it is used together with the viewId parameter, there are several cases:</br>
+            <li> Specify the view Id, tabBar=true. Then the title of the label bar will replace the table name with the view name, the label cards of other views will be hidden, only the corresponding view is loaded
+            <li> Specify viewId, tabBar=false. The tab bar is not displayed, and the interface only loads the corresponding view
+            <li> Do not specify viewId, tabBar=true. All view label cards will be displayed and the whole table will be embedded
+          type: boolean
+        toolBar:
+          $ref: "#/components/schemas/EmbedLinkPayloadViewToolBarDto"
+        collapsed:
+          type: boolean
+          description: Whether to hide the view tab bar (this property is not open temporarily)
+        nodeInfoBar:
+          type: boolean
+          description: Whether to hide the upper left corner area of the dashboard such as "Title, Description, Role".
+        collaboratorStatusBar:
+          type: boolean
+          description: Whether to hide the "Avatar and Network Saved Status".
+    EmbedLinkPayloadDto:
+      type: object
+      properties:
+        primarySideBar:
+          description: Personalized working directory panel, hidden by default
+          allOf:
+            - $ref: "#/components/schemas/EmbedLinkPayloadPrimarySideBarDto"
+        viewControl:
+          description: The view tab bar and view toolbar are not displayed by default.
+          allOf:
+            - $ref: "#/components/schemas/EmbedLinkPayloadViewControlDto"
+        bannerLogo:
+          type: boolean
+          description: Whether to display the logo of the "Vignette Table" brand. The default value is true, indicating that the logo is displayed
+        permissionType:
+          type: string
+          description: >-
+            Set the embedded link's data authorization type.
+            <li> <code>readOnly</code>: Default value. This parameter defaults to readOnly if it is not set. Embedded datasheets can only be read, not edited, by visitors.
+            <li> <code>publicEdit</code>: Visitors can edit row data in an embedded datasheet once they have logged in.
+            <li> <code>privateEdit</code>: Every datasheet in the space can have its operation permission set (read-only, update-only, edit, manage). Use the <code>privateEdit</code> type to indicate that the visitor's identity must be a member of this space and that the operation permission is consistent with accessing the datasheet inside the space. <br/>For example, member A created a new datasheet and assigned it "readOnly" permission to member B, then created an embedded link to it in a corporate space. As a result, member B has only "read-only" permissions when he accesses the datasheet data through the embedded link.
+    EmbedLinkTheme:
+      type: string
+      enum:
+        - light
+        - dark
+    EmbedLinkPropertyDto:
+      type: object
+      properties:
+        payload:
+          $ref: "#/components/schemas/EmbedLinkPayloadDto"
+        theme:
+          type: string
+          description: (This attribute is temporarily closed) The default value is light, theme color, dark | light
+    EmbedLinkDto:
+      type: object
+      properties:
+        payload:
+          $ref: "#/components/schemas/EmbedLinkPayloadDto"
+        theme:
+          type: string
+          description: (This attribute is temporarily closed) The default value is light, theme color, dark | light
+        linkId:
+          type: string
+          description: Embedded link ID (the last string of url path)
+        url:
+          type: string
+          description: Embed Access Links
+      required:
+        - linkId
+        - url
+    CreateEmbedLinkVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Response business status code
+        message:
+          type: string
+          example: SUCCESS
+          description: Response Status Code Description
+        data:
+          description: Response data
+          allOf:
+            - $ref: "#/components/schemas/EmbedLinkDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    EmbedLinkListVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Response business status code
+        message:
+          type: string
+          example: SUCCESS
+          description: Response Status Code Description
+        data:
+          description: Response data
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbedLinkDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    OmitTypeClass:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+      required:
+        - success
+        - code
+        - message
+    MemberType:
+      type: string
+      enum:
+        - PrimaryAdmin
+        - SubAdmin
+        - Member
+    SpaceMemberDto:
+      type: object
+      properties:
+        unitId:
+          type: string
+          description: Member's unitId
+          example: "kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6"
+        name:
+          type: string
+          description: Member's name
+          example: "John"
+        email:
+          type: string
+          description: Member's email address
+          example: "john@aitable.ai"
+        avatar:
+          type: string
+          description: The resource address for the member's avatar.
+          example: "https://s1.aitable.ai/public/2023/05/16/00a91wbb47fd0594fbc975d2d764a45q"
+        mobile:
+          type: object
+          properties:
+            number:
+              type: string
+              description: Member's phone number
+              example: "13000111000"
+            areaCode:
+              type: string
+              description: The area code of the member's phone number.
+              example: "+86"
+        status:
+          type: number
+          description: Member's status, whether joined space (1:joined, 0:not joined)
+          example: 1
+        type:
+          example: Member
+          description: Member's type (Primary Administrator:PrimaryAdmin, Subadministrator:SubAdmin, Member:Member)
+          $ref: "#/components/schemas/MemberType"
+        teams:
+          description: Teams to which the member belongs.
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceTeamDto"
+        roles:
+          description: Roles associated with the member.
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceRoleDto"
+      required:
+        - unitId
+        - name
+        - email
+        - status
+        - type
+    SpaceMemberVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceMemberDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    SpaceMemberPageDto:
+      type: object
+      properties:
+        pageNum:
+          type: number
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+        pageSize:
+          type: number
+          example: 100
+          description: The number of members to return per page. The default is to return 100 members per page. The valid range for this parameter is an integer from 1 to 1000.
+        total:
+          type: number
+          example: 500
+          description: Total number of members.
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceMemberDto"
+      required:
+        - pageNum
+        - pageSize
+        - total
+        - members
+    SpaceMemberPageVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceMemberPageDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    UpdateMemberRo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Member's name
+          example: "John"
+        teams:
+          description: The unitIds of teams to which the member belongs.
+          type: array
+          items:
+            type: string
+            example: "X9vJ6R2qFzL8sK1mVxZcPwNtY3gT5yD"
+            desciption: Team's unitId
+        roles:
+          description: The unitIds of roles associated with the member.
+          type: array
+          items:
+            type: string
+            example: "gP5zF7xW1mC2nQ4sXrKjV8bT6tL9yH"
+            desciption: Role's unitId
+
+    SpaceTeamDto:
+      type: object
+      properties:
+        unitId:
+          type: string
+          description: Team's unitId
+          example: "X9vJ6R2qFzL8sK1mVxZcPwNtY3gT5yD"
+        name:
+          type: string
+          description: Team's name
+          example: "Team A"
+        sequence:
+          type: number
+          description: The sorting order of the team at the current hierarchy level. In the Contacts, teams are sorted in ascending order based on this sequence number. If there are duplicate sequence numbers within the same hierarchy level, the teams will be sorted in ascending order based on their creation time.
+          example: 1
+        parentUnitId:
+          type: string
+          description: The unitId of the parent team to which the team belongs.
+          example: "bD3fT4cL9wZ5mN8xSsK7qVvRjXhGpY"
+        roles:
+          description: Roles associated with the team.
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceRoleDto"
+      required:
+        - name
+        - unitId
+    SpaceTeamPageDto:
+      type: object
+      properties:
+        pageNum:
+          type: number
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+        pageSize:
+          type: number
+          example: 100
+          description: The number of teams to return per page. The default is to return 100 teams per page. The valid range for this parameter is an integer from 1 to 1000.
+        total:
+          type: number
+          example: 500
+          description: Total number of teams.
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceTeamDto"
+      required:
+        - pageNum
+        - pageSize
+        - total
+        - teams
+    SpaceTeamPageVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceTeamPageDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    CreateTeamRo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Team's name
+          example: "Team A"
+        sequence:
+          type: number
+          description: The sorting order of the team at the current hierarchy level. In the Contacts, teams are sorted in ascending order based on this sequence number. If there are duplicate sequence numbers within the same hierarchy level, the teams will be sorted in ascending order based on their creation time.
+          example: 1
+        parentUnitId:
+          type: string
+          description: The unitId of the parent team to which the team belongs.
+          example: "bD3fT4cL9wZ5mN8xSsK7qVvRjXhGpY"
+        roles:
+          description: Roles associated with the member.
+          type: array
+          items:
+            type: string
+            example: "gP5zF7xW1mC2nQ4sXrKjV8bT6tL9yH"
+            desciption: Role's unitId
+      required:
+        - name
+    CreateTeamVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: The global status value. If it is false, it indicates that a business error or interface call error has occurred.
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          $ref: "#/components/schemas/SpaceTeamDto"
+    UpdateTeamRo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Team's name
+          example: "Team A"
+        sequence:
+          type: number
+          description: The sorting order of the team at the current hierarchy level. In the Contacts, teams are sorted in ascending order based on this sequence number. If there are duplicate sequence numbers within the same hierarchy level, the teams will be sorted in ascending order based on their creation time.
+          example: 1
+        parentUnitId:
+          type: string
+          description: The unitId of the parent team to which the team belongs.
+          example: "bD3fT4cL9wZ5mN8xSsK7qVvRjXhGpY"
+        roles:
+          description: Roles associated with the member.
+          type: array
+          items:
+            type: string
+            example: "gP5zF7xW1mC2nQ4sXrKjV8bT6tL9yH"
+            desciption: Role's unitId
+    UpdateTeamVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceTeamDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+
+    SpaceRoleDto:
+      type: object
+      properties:
+        unitId:
+          type: string
+          description: Role's unitId
+          example: "gP5zF7xW1mC2nQ4sXrKjV8bT6tL9yH"
+        name:
+          type: string
+          description: Role's name
+          example: "Finance"
+        sequence:
+          type: number
+          description: The sorting order of roles starts from 2000 and increases incrementally, such as "2001, 2002, 2003". The sorting sequence of roles can have duplicates, and if there are duplicates, the roles are further sorted in ascending order based on their creation time.
+          example: 2001
+      required:
+        - name
+        - unitId
+    SpaceRoleUnitDto:
+      type: object
+      properties:
+        members:
+          description: Members associated with the role.
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceMemberDto"
+        teams:
+          description: Teams associated with the role.
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceTeamDto"
+    SpaceRoleUnitVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceRoleUnitDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    SpaceRolePageDto:
+      type: object
+      properties:
+        pageNum:
+          type: number
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+        pageSize:
+          type: number
+          example: 100
+          description: The number of roles to return per page. The default is to return 100 roles per page. The valid range for this parameter is an integer from 1 to 1000.
+        total:
+          type: number
+          example: 500
+          description: Total number of roles.
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpaceRoleDto"
+      required:
+        - pageNum
+        - pageSize
+        - total
+        - roles
+    SpaceRolePageVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceRolePageDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    CreateRoleRo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Role's name
+          example: "Finance"
+        sequence:
+          type: number
+          description: The sorting order of roles starts from 2000 and increases incrementally, such as "2001, 2002, 2003". The sorting sequence of roles can have duplicates, and if there are duplicates, the roles are further sorted in ascending order based on their creation time.
+          example: 2001
+      required:
+        - name
+    CreateRoleVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceRoleDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    UpdateRoleRo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Role's name
+          example: "Finance"
+        sequence:
+          type: number
+          description: The sorting order of roles starts from 2000 and increases incrementally, such as "2001, 2002, 2003". The sorting sequence of roles can have duplicates, and if there are duplicates, the roles are further sorted in ascending order based on their creation time.
+          example: 2001
+    UpdateRoleVo:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+          description: Success or not
+        code:
+          type: number
+          example: 200
+          description: Business status code, 200 indicates that the business request is successful.
+        message:
+          type: string
+          example: SUCCESS
+          description: Return information, and return error information when executing an error.
+        data:
+          description: The returned business data body.
+          allOf:
+            - $ref: "#/components/schemas/SpaceRoleDto"
+      required:
+        - success
+        - code
+        - message
+        - data
+    AiFunction:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the function to be called.
+        description:
+          type: string
+          description: A description of what the function does, used by the model to choose when and how to call the function.
+        parameters:
+          type: object
+          description: The parameters the functions accepts, described as a JSON Schema object, related to the specific function.
+      required:
+        - name
+        - parameters
+    AiChatCompletionRo:
+      type: object
+      properties:
+        model:
+          type: string
+          description: ID of the model to use, like "gpt-3.5-turbo". See the [Bot Model list](https://help.aitable.ai/docs/guide/ai-chatbot#bot-model)
+          example: "gpt-3.5-turbo"
+        messages:
+          type: array
+          description: A list of messages comprising the conversation so far.
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                description: The role of the one sending the message (user or system)
+                example: "user"
+              content:
+                type: string
+                description: Message content
+                example: "Hello!"
+        functions:
+          type: array
+          description: A list of functions the model may generate JSON inputs for.
+          allOf:
+            - $ref: "#/components/schemas/AiFunction"
+        function_call:
+          type: object
+          description: Controls how the model responds to function calls. "none" means the model does not call a function, and responds to the end-user. "auto" means the model can pick between an end-user or calling a function. Specifying a particular function via {"name":\ "my_function"} forces the model to call that function. "none" is the default when no functions are present. "auto" is the default if functions are present.
+          example: {"name": "my_function"}
+        temperature:
+          type: number
+          maximum: 2
+          minimum: 0
+          description: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
+          example: 1
+        top_p:
+          type: number
+          description: An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+          example: 1
+        stream:
+          type: boolean
+          description: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only server-sent events as they become available, with the stream terminated by a data:[DONE] message.
+          example: false
+        stop:
+          type: string/array/null
+          description: Up to 4 sequences where the API will stop generating further tokens.
+          example: null
+        max_tokens:
+          type: number
+          description: The maximum number of tokens to generate in the chat completion.
+          example: 5
+        presence_penalty:
+          type: number
+          maximum: 2
+          minimum: -2
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
+          example: 0
+        frequency_penalty:
+          type: number
+          maximum: 2
+          minimum: -2
+          description: Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+          example: 0
+        user:
+          type: string
+          description: A unique identifier representing your end-user, which can help us to monitor and detect abuse.
+          example: "user123456"
+      required:
+        - model
+        - messages
+    AiChatCompletionVo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the chat completion or chunk.
+          example: "aitable_ai_CkZH2zQokhry31j_1693452659"
+        conversation_id:
+          type: string
+          description: A unique identifier for the chat completion or chunk.
+          example: "CS-0253eb8d-d6c6-4543-88d4-fcb555f52982"
+        actions:
+          type: string
+          description:
+          example: null
+        object:
+          type: string
+          description: The object type, which is always chat.completion or chat.completion.chunk.
+          example: "chat.completion"
+        created:
+          type: number
+          description: A unix timestamp of when the chat completion chunk was created.
+          example: 1693452659
+        model:
+          type: string
+          description: The model to generate the completion.
+          example: "gpt-3.5-turbo"
+        choices:
+          type: array
+          description: A list of chat completion choices. Can be more than one if n is greater than 1.
+          items:
+            type: object
+            properties:
+              index:
+                type: number
+                description: The index number of the choice
+                example: 0
+              message:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    description: The role of the one sending the message (user or system)
+                    example: "assistant"
+                  content:
+                    type: string
+                    description: Message content
+                    example: "\n\nHello there, how may I assist you today"
+                description: The generated message choices based on the provided messages
+              finish_reason:
+                type: string
+                description: The reason the model stopped generating tokens. This will be stop if the model hit a natural stop point or a provided stop sequence, or length if the maximum number of tokens specified in the request was reached.
+                example: "length"
+        usage:
+          description: Usage statistics for the completion request.
+          type: object
+          properties:
+            prompt_tokens:
+              type: number
+              description: Number of tokens in the prompt.
+              example: 9
+            completion_tokens:
+              type: number
+              description: Number of tokens in the generated completion.
+              example: 12
+            total_tokens:
+              type: number
+              description: Total number of tokens used in the request (prompt + completion).
+              example: 21
+            total_cost:
+              type: number
+              description: The total message credit cost of this request
+              example: 21
+            result:
+              type: string
+              description: Message content
+              example: "\n\nHello there, how may I assist you today"
+      required:
+        - id
+        - object
+        - created
+        - model
+        - choices
+
+paths:
+  "/fusion/v1/datasheets/{datasheetId}/records":
+    get:
+      operationId: get-records
+      summary: Get Records
+      description:
+        $ref: ./api/get-records.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+        - name: pageSize
+          required: false
+          in: query
+          example: 100
+          description: How many records are returned per page. By default, 100 records are returned per page. The value range is an integer from 1 to 1000.
+          schema:
+            default: 100
+            type: number
+        - name: maxRecords
+          required: false
+          in: query
+          example: 1000
+          description: How many records are returned in total. If maxRecords and pageSize are used at the same time, and the value of maxRecords is less than the total number of records, only the setting of maxRecords will take effect.
+          schema:
+            type: number
+        - name: pageNum
+          required: false
+          in: query
+          example: 1
+          description: Specifies the page number of the page, which is used in conjunction with the pageSize parameter. For example, 'pageSize=1000&pageNum=2' returns records between 1001 and 2000.
+          schema:
+            default: 1
+            type: number
+        - name: sort
+          required: false
+          in: query
+          description: Sort the returned records. Sort is an array of multiple sort objects.The structure of a single sort object is `{"order":"asc or desc", "field":"Field name or field ID"}`.Query Example `sort[][field]=Customer Name&sort[][order]=asc`,The returned records are sorted alphabetically in the Customer Name column.If sort and viewId are used at the same time, the sort condition specified by sort will overwrite the sort condition in the view.
+          schema:
+            type: array
+            items:
+              type: object
+        - name: recordIds
+          required: false
+          in: query
+          example: rec4zxfWB5uyM
+          description: Returns a specified record. Example of obtaining multiple records:`&recordIds=rec4zxfWB5uyM&,reclNflLgtzjY`. The returned results are sorted according to the order in which the recordIds are passed in. No paging, up to 1000 records can be returned each time.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: viewId
+          required: false
+          in: query
+          example: viwG9l1VPD6nH
+          description: When the viewId is not explicitly specified, all records and fields are returned.When the viewId is explicitly specified, all records in the specified view will be returned in turn according to the sorting in the specified view.Note that the hidden fields in the view will not appear in the returned results.
+          schema:
+            type: string
+        - name: fields
+          required: false
+          in: query
+          description: The returned record results are limited to the specified fields.cURL Query Example. 1. `&fields=name,age` (when `&fieldKey=name`) 2. `&fields=fldWooy3c3Puz,fldEAr5y7Go5S` (when `&fieldKey=id`).Both of the above two writing methods specify that the returned record only contains two columns 「Name」 and 「Age」.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: filterByFormula
+          required: false
+          in: query
+          description: Use smart formulas to filter records.The formula can be used for reference[《Formula Overview》](https://help.aitable.ai/docs/guide/manual-formula-field-overview).If filterByFormula and viewId are used at the same time, all records in the specified view that meet this formula will be returned.Query Example. `&filterByFormula={Title}="tittle 1"`(You need to use the encodeURIComponent() function to escape the '{Title}="Heading 1"'.) You can accurately match the record with the value of "Heading 1" in the "Heading" column.
+          schema:
+            type: string
+        - name: cellFormat
+          required: false
+          in: query
+          description: |-
+            The type of the value in the cell. The default is `json`. When `string` is specified, all values will be automatically converted to string format.
+            When `string` is specified, if the returned records contain date-time values, these values will use the time zone given in the following order (priority from high to low):
+            1. If the date-time field has set a time zone, use that one.
+            2. If the user has set a time zone in user settings, use that one.
+            3. Use the default time zone (UTC-5, America/Toronto).
+          schema:
+            default: json
+            enum:
+              - string
+              - json
+            type: string
+        - name: fieldKey
+          required: false
+          in: query
+          description: The key used when querying fields and returning fields. The default is' name '(field name). When 'id' is specified, fieldId will be used as the query and return method (use 'id' can avoid code invalidation caused by modifying field names).
+          schema:
+            default: name
+            enum:
+              - name
+              - id
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordPageVo"
+      tags:
+        - Record
+      # security:
+      #   - API_TOKEN:
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_records.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_records.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/get_records.py
+    post:
+      operationId: create-records
+      summary: Create Records
+      description:
+        $ref: ./api/create-records.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+        - name: viewId
+          required: false
+          in: query
+          example: viwG9l1VPD6nH
+          description: When the viewId is not explicitly specified, all fields that are not empty are returned; When the viewId is explicitly specified, the fields that are not hidden and are not empty in the specified view are returned.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordCreateRo"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordListVo"
+      tags:
+        - Record
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_records.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/create_records.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/create_records.py
+    patch:
+      operationId: update-records
+      summary: Update Records
+      description:
+        $ref: ./api/update-records.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+        - name: viewId
+          required: false
+          in: query
+          example: viwG9l1VPD6nH
+          description: When the viewId is not explicitly specified, all fields that are not empty are returned; When the viewId is explicitly specified, the fields that are not hidden and are not empty in the specified view are returned.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordUpdateRo"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordListVo"
+      tags:
+        - Record
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/update_records.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/update_records.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/update_records.py
+    delete:
+      operationId: delete-records
+      summary: Delete Record
+      description:
+        $ref: ./api/delete-records.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+        - name: recordIds
+          required: true
+          in: query
+          description: ID of the record to be deleted.
+          example: recwZ6yV3Srv3
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordDeleteVo"
+      tags:
+        - Record
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_records.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/delete_records.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/update_records.py
+  "/fusion/v1/datasheets/{datasheetId}/attachments":
+    post:
+      operationId: upload-attachments
+      summary: Upload Attachment
+      description:
+        $ref: ./api/upload-attachments.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/AttachmentUploadRo"
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttachmentVo"
+        # "500":
+        #   description: ""
+      tags:
+        - Attachment
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/upload_attachments.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/upload_attachments.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/update_records.py
+  "/fusion/v1/datasheets/{datasheetId}/fields":
+    get:
+      operationId: get-fields
+      summary: Get Field
+      description:
+        $ref: ./api/get-fields.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+        - name: viewId
+          required: false
+          in: query
+          example: viwG9l1VPD6nH
+          description: View ID. If you specify a view, the returned fields are in the same order as the view. Hidden fields will not be returned.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaFieldResp"
+      tags:
+        - Field
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_fields.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_fields.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/get_fields.py
+  "/fusion/v1/spaces/{spaceId}/datasheets/{datasheetId}/fields":
+    post:
+      operationId: create-fields
+      summary: Create Field
+      description:
+        $ref: ./api/create-fields.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: datasheetId
+          required: true
+          in: path
+          example: dstNiC6R9MryevVaCQ
+          description: Datasheet ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FieldItemRo"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldCreateVo"
+      tags:
+        - Field
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_fields.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/create_fields.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/create_fields.py
+  "/fusion/v1/spaces/{spaceId}/datasheets/{datasheetId}/fields/{fieldId}":
+    delete:
+      operationId: delete-fields
+      summary: Delete Field
+      description:
+        $ref: ./api/delete-fields.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: datasheetId
+          required: true
+          in: path
+          example: dstNiC6R9MryevVaCQ
+          description: Datasheet ID
+          schema:
+            type: string
+        - name: fieldId
+          required: true
+          in: path
+          example: fld7r18G7eSOu
+          description: field ID, field ID can be obtained through the field interface
+          schema:
+            type: string
+      requestBody:
+        # required: true
+        # description: Request body structure
+        # content:
+        #   application/json:
+        #     schema:
+        #       $ref: "#/components/schemas/FieldItemRo"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldDeleteVo"
+      tags:
+        - Field
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_fields.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/delete_fields.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/delete_fields.py
+  "/fusion/v1/datasheets/{datasheetId}/views":
+    get:
+      operationId: get-views
+      summary: Get View
+      description:
+        $ref: ./api/get-views.md
+      deprecated: false
+      parameters:
+        - name: datasheetId
+          required: true
+          in: path
+          example: dst0Yj5aNeoHldqvf6
+          description: AITable Datasheet ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaViewResp"
+      tags:
+        - View
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_views.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_views.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/get_views.py
+  "/fusion/v1/spaces/{spaceId}/datasheets":
+    post:
+      operationId: create-datasheets
+      summary: Create Datasheet
+      description:
+        $ref: ./api/create-datasheets.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatasheetCreateRo"
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasheetCreateVo"
+      tags:
+        - Datasheet
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_datasheets.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/create_datasheets.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/create_datasheets.py
+  "/fusion/v1/spaces":
+    get:
+      operationId: get-spaces
+      summary: Get the List of Spaces
+      description:
+        $ref: ./api/get-spaces.md
+      deprecated: false
+      # parameters:
+      # - name: spaceId
+      #   required: true
+      #   in: path
+      #   example: spczdmQDfBAn5
+      #   description: Space ID
+      #   schema:
+      #     type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceListResp"
+      tags:
+        - Space
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_spaces.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_spaces.js
+      #   - lang: Python SDK
+      #     source:
+      #       $ref: ./api/code_snippets/get_spaces.py
+  "/fusion/v1/spaces/{spaceId}/nodes":
+    get:
+      operationId: get-nodes
+      summary: Get Node List
+      description:
+        $ref: ./api/get-nodes.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spczdmQDfBAn5
+          description: Space ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeListResp"
+      tags:
+        - Node
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_nodes.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_nodes.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/get_nodes.py
+  "/fusion/v2/spaces/{spaceId}/nodes":
+    get:
+      operationId: search-nodes
+      summary: Search Nodes
+      description:
+        $ref: ./api/search-nodes.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spczdmQDfBAn5
+          description: Space ID
+          schema:
+            type: string
+        - name: type
+          required: true
+          in: query
+          example: "Datasheet"
+          description: The type of file node, value in ("Folder", "Datasheet", "Form", "Dashboard", "Mirror"). The values are case-sensitive.
+          schema:
+            type: string
+            enum:
+              - Folder
+              - Datasheet
+              - Form
+              - Dashboard
+              - Mirror
+        - name: permissions
+          required: false
+          in: query
+          description: "0: Manager, able to add, delete views and records field, and allowed to edit fields, but unable to add and delete fields.<br/>1: Editor, able to add, delete views and records field, and allowed to edit fields, but unable to add and delete fields.<br/>2: Update-only, able to view, add and edit records, but unable to delete records.<br/>3: Read-only, only allowed to view the data.<br/>By providing the permissions associated with their API token, users can retrieve all file nodes within their account that match those permissions. If this parameter is empty, return all accessible file nodes.<br/>For example, if you want to get all file nodes where records can be added, pass the parameter like this permissions=0,1,2<br/>For more details about file node permissions can be found here: https://help.aitable.ai/docs/guide/faq-permission-settings"
+          schema:
+            type: array
+            default: [0, 1, 2, 3]
+            items:
+              type: number
+              enum:
+                - 0
+                - 1
+                - 2
+                - 3
+        - name: query
+          required: false
+          in: query
+          description: This parameter enables searching for file nodes with specific keywords and returns a list of matching nodes based on partial name matches.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeInfosResp"
+      tags:
+        - Node
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/search_nodes.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/search_nodes.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/search_nodes.py
+  "/fusion/v1/spaces/{spaceId}/nodes/{nodeId}":
+    get:
+      operationId: get-node-details
+      summary: Get Node Details
+      description:
+        $ref: ./api/get-node-details.md
+      deprecated: false
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spczdmQDfBAn5
+          description: Space ID
+          schema:
+            type: string
+        - name: nodeId
+          required: true
+          in: path
+          example: fodTXAYEmQ5rd
+          description: File node ID, such as AITable Datasheet ID, folder ID, collection table ID or dashboard ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeDetailResp"
+      tags:
+        - Node
+      # security:
+      #   - API_TOKEN: []
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_node_details.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_node_details.js
+        # - lang: Python SDK
+        #   source:
+        #     $ref: ./api/code_snippets/get_node_details.py
+  "/fusion/v1/spaces/{spaceId}/nodes/{nodeId}/embedlinks":
+    post:
+      operationId: create-embedlinks
+      summary: Create embedded links
+      description:
+        $ref: ./api/create-embedlinks.md
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: nodeId
+          required: true
+          in: path
+          example: dstS94qPZFXjC1LKns
+          description: Node ID, support Datasheet, Dashboard and Form
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmbedLinkPropertyDto"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateEmbedLinkVo"
+      tags:
+        - Node
+        - Enterprise
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_embedlinks.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/create_embedlinks.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/create_embedlinks.py
+    get:
+      operationId: get-embedlinks
+      summary: Get list of embedded links
+      description:
+        $ref: ./api/get-embedlinks.md
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: nodeId
+          required: true
+          in: path
+          example: dstS94qPZFXjC1LKns
+          description: Node ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbedLinkListVo"
+      tags:
+        - Node
+        - Enterprise
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_embedlinks.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/get_embedlinks.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/get_embedlinks.py
+  "/fusion/v1/spaces/{spaceId}/nodes/{nodeId}/embedlinks/{linkId}":
+    delete:
+      operationId: delete-embedlinks
+      summary: Delete embedded link
+      description:
+        $ref: ./api/delete-embedlinks.md
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: nodeId
+          required: true
+          in: path
+          example: dstS94qPZFXjC1LKns
+          description: Node ID
+          schema:
+            type: string
+        - name: linkId
+          required: true
+          in: path
+          description: Embed Link ID
+          example: embb90a52cfc02a4f83
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmitTypeClass"
+      tags:
+        - Node
+        - Enterprise
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_embedlinks.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/delete_embedlinks.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/delete_embedlinks.py
+  "/fusion/v1/spaces/{spaceId}/members/{unitId}":
+    get:
+      description:
+        $ref: ./api/get-a-member.md
+      operationId: get-a-member
+      summary: Get a member
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+          description: Member's unitId
+          schema:
+            type: string
+        - name: sensitiveData
+          required: false
+          in: query
+          example: true
+          description: Fill in "true" to get sensitive member data such as phone number and email address.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceMemberVo"
+      tags:
+        - Member
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/get_a_member.sh
+    put:
+      description:
+        $ref: ./api/update-a-member.md
+      operationId: update-a-member
+      summary: Update a member
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+          description: Member's unitId
+          schema:
+            type: string
+        - name: sensitiveData
+          required: false
+          in: query
+          example: true
+          description: Fill in "true" to get sensitive member data such as phone number and email address.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberRo"
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceMemberVo"
+      tags:
+        - Member
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/update_a_member.sh
+    delete:
+      description:
+        $ref: ./api/delete-a-member.md
+      operationId: delete-a-member
+      summary: Delete a member
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          description: The unitId of the member to be deleted.
+          example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmitTypeClass"
+      tags:
+        - Member
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_a_member.sh
+  "/fusion/v1/spaces/{spaceId}/teams/{unitId}/members":
+    get:
+      description:
+        $ref: ./api/list-the-team-members.md
+      operationId: list-the-team-members
+      summary: List the team members
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: X9vJ6R2qFzL8sK1mVxZcPwNtY3gT5yD
+          description: Team's unitId
+          schema:
+            type: string
+        - name: pageSize
+          required: false
+          in: query
+          example: 100
+          description: The number of members to return per page. The default is to return 100 members per page. The valid range for this parameter is an integer from 1 to 1000.
+          schema:
+            type: number
+        - name: pageNum
+          required: false
+          in: query
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+          schema:
+            type: number
+        - name: sensitiveData
+          required: false
+          in: query
+          example: true
+          description: Fill in "true" to get sensitive member data such as phone number and email address.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceMemberPageVo"
+      tags:
+        - Team
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/list_the_team_members.sh
+  "/fusion/v1/spaces/{spaceId}/teams/{unitId}/children":
+    get:
+      description:
+        $ref: ./api/list-teams.md
+      operationId: list-teams
+      summary: List sub teams
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: X9vJ6R2qFzL8sK1mVxZcPwNtY3gT5yD
+          description: Team's unitId
+          schema:
+            type: string
+        - name: pageSize
+          required: false
+          in: query
+          example: 100
+          description: The number of teams to return per page. The default is to return 100 teams per page. The valid range for this parameter is an integer from 1 to 1000.
+          schema:
+            type: number
+        - name: pageNum
+          required: false
+          in: query
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceTeamPageVo"
+      tags:
+        - Team
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/list_teams.sh
+  "/fusion/v1/spaces/{spaceId}/teams":
+    post:
+      description:
+        $ref: ./api/create-a-team.md
+      operationId: create-a-team
+      summary: Create a team
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTeamRo"
+      responses:
+        "201":
+          description: Successfully created a team.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTeamVo"
+      tags:
+        - Team
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_a_team.sh
+  "/fusion/v1/spaces/{spaceId}/teams/{unitId}":
+    put:
+      description:
+        $ref: ./api/update-a-team.md
+      operationId: update-a-team
+      summary: Update a team
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: zJ6TuQvH2RtNfSx9eY7XKgD1oWcE5pV
+          description: The unitId of the team to be updated.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTeamRo"
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateTeamVo"
+      tags:
+        - Team
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/update_a_team.sh
+    delete:
+      description:
+        $ref: ./api/delete-a-team.md
+      operationId: delete-a-team
+      summary: Delete a team
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: query
+          description: The unitId of the team to be deleted.
+          example: zJ6TuQvH2RtNfSx9eY7XKgD1oWcE5pV
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmitTypeClass"
+      tags:
+        - Team
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_a_team.sh
+  "/fusion/v1/spaces/{spaceId}/roles/{unitId}/units":
+    get:
+      description:
+        $ref: ./api/list-units-under-the-role.md
+      operationId: list-units-under-the-role
+      summary: List units under the role
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: gP5zF7xW1mC2nQ4sXrKjV8bT6tL9yH
+          description: Role's unitId
+          schema:
+            type: string
+        - name: sensitiveData
+          required: false
+          in: query
+          example: true
+          description: Fill in "true" to get sensitive member data such as phone number and email address.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceRoleUnitVo"
+      tags:
+        - Role
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/list_units_under_the_role.sh
+  "/fusion/v1/spaces/{spaceId}/roles":
+    get:
+      description:
+        $ref: ./api/list-roles.md
+      operationId: list-roles
+      summary: List roles
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: pageSize
+          required: false
+          in: query
+          example: 100
+          description: The number of roles to return per page. The default is to return 100 roles per page. The valid range for this parameter is an integer from 1 to 1000.
+          schema:
+            type: number
+        - name: pageNum
+          required: false
+          in: query
+          example: 1
+          description: The page number for pagination, used in conjunction with the pageSize parameter. For example, pageSize=1000&pageNum=2 will return records from 1001 to 2000.
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceRolePageVo"
+      tags:
+        - Role
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/list_roles.sh
+    post:
+      description:
+        $ref: ./api/create-a-role.md
+      operationId: create-a-role
+      summary: Create a role
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoleRo"
+      responses:
+        "201":
+          description: Successfully created a role.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRoleVo"
+      tags:
+        - Role
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_a_role.sh
+  "/fusion/v1/spaces/{spaceId}/roles/{unitId}":
+    put:
+      description:
+        $ref: ./api/update-a-role.md
+      operationId: update-a-role
+      summary: Update a role
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+          description: The unitId of the role to be updated.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRo"
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateRoleVo"
+      tags:
+        - Role
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/update_a_role.sh
+    delete:
+      description:
+        $ref: ./api/delete-a-role.md
+      operationId: delete-a-role
+      summary: Delete a role
+      parameters:
+        - name: spaceId
+          required: true
+          in: path
+          example: spcjXzqVrjaP3
+          description: Space ID
+          schema:
+            type: string
+        - name: unitId
+          required: true
+          in: path
+          example: kD8tPcZ3fYxSjV9qWvL5X2TmQbN1nR6
+          description: The unitId of the role to be deleted.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OmitTypeClass"
+      tags:
+        - Role
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/delete_a_role.sh
+  "/fusion/v1/ai/{aiId}/chat/completions":
+    post:
+      description:
+        $ref: ./api/create-chat-completions.md
+      operationId: create-chat-completions
+      summary: Create chat completions
+      parameters:
+        - name: aiId
+          required: true
+          in: path
+          example: ai_zxLeHGV3ac32YYC
+          description: AI ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body structure
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatCompletionRo"
+      responses:
+        "200":
+          description: Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiChatCompletionVo"
+      tags:
+        - AI
+      x-codeSamples:
+        - lang: cURL
+          source:
+            $ref: ./api/code_snippets/create_chat_completions.sh
+        - lang: JavaScript SDK
+          source:
+            $ref: ./api/code_snippets/create_chat_completions.js
+        - lang: Python SDK
+          source:
+            $ref: ./api/code_snippets/create_chat_completions.py
