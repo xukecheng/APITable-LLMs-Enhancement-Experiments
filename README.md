@@ -9,3 +9,4 @@
 7. See [APITable devbook retrieve chat of Autogen](apitable_devbook_retrievechat_autogen.ipynb).
 8. See [APITable group chat of Autogen](apitable_groupchat_autogen.ipynb).
 9. See [APITable OpenAPI QA Bot with knowledge graph](apitable_devbook_knowledge_graph.ipynb).
+10. See [APITable OpenAPI with Assistant API](apitable_devbook_assistant_api.ipynb).
