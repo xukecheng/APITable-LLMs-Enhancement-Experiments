@@ -1,4 +1,4 @@
-# APITable-LLMs-Enhancement-Experiments
+# APITable-LLMs-Agent-Experiments
 
 1. See [APITable Langchain Toolkit](apitable_langchain_toolkit.ipynb).
 2. See [APITable with OpenAI Function API](apitable_openai_function.ipynb).
